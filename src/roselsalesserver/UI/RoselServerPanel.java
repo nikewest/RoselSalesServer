@@ -6,39 +6,33 @@
 package roselsalesserver.UI;
 
 import java.util.Properties;
-import roselsalesserver.RoselSalesServer;
 import modules.serverlogic.ServerSettings;
+
 
 /**
  *
  * @author nikiforovnikita
  */
-public class ServerPanel extends javax.swing.JPanel {
+public class RoselServerPanel extends javax.swing.JPanel {
 
-    RoselSalesServer roselSalesServer;           
+    private final RoselServerView view;   
     
-    /**
-     * Creates new form serverPanel
-     * @param roselSalesServer
-     */
-    public ServerPanel(RoselSalesServer roselSalesServer) {
-        this.roselSalesServer = roselSalesServer;
-        initComponents();
-        loadSettingsToUI(roselSalesServer.getServerSettings());        
+    public RoselServerPanel(RoselServerView view) {        
+        this.view = view;
+        initComponents();        
     }
     
-    public final void loadSettingsToUI(Properties settings){     
-        //settings.getProperty(TOOL_TIP_TEXT_KEY)
-        dbTypeComboBox.setSelectedItem(settings.getProperty(ServerSettings.DB_TYPE).toString());
-        serverTextField.setText(settings.getProperty(ServerSettings.DB_SERVER).toString());
-        dbNameTextField.setText(settings.getProperty(ServerSettings.DB_NAME).toString());
-        loginTextField.setText(settings.getProperty(ServerSettings.DB_LOGIN).toString());
-        passwordField.setText(settings.getProperty(ServerSettings.DB_PASSWORD).toString());
+    public final void loadSettingsToUI(Properties settings){             
+        dbTypeComboBox.setSelectedItem(settings.getProperty(ServerSettings.DB_TYPE));
+        serverTextField.setText(settings.getProperty(ServerSettings.DB_SERVER));
+        dbNameTextField.setText(settings.getProperty(ServerSettings.DB_NAME));
+        loginTextField.setText(settings.getProperty(ServerSettings.DB_LOGIN));
+        passwordField.setText(settings.getProperty(ServerSettings.DB_PASSWORD));
         hostTextField.setText(settings.getProperty(ServerSettings.EMAIL_HOST));
-        portTextField.setText(settings.getProperty(ServerSettings.EMAIL_PORT).toString());
-        fromTextField.setText(settings.getProperty(ServerSettings.EMAIL_FROM).toString());
-        emailLoginTextField.setText(settings.getProperty(ServerSettings.EMAIL_LOGIN).toString());
-        emailPwdTextField.setText(settings.getProperty(ServerSettings.EMAIL_PASSWORD).toString());        
+        portTextField.setText(settings.getProperty(ServerSettings.EMAIL_PORT));
+        fromTextField.setText(settings.getProperty(ServerSettings.EMAIL_FROM));
+        emailLoginTextField.setText(settings.getProperty(ServerSettings.EMAIL_LOGIN));
+        emailPwdTextField.setText(settings.getProperty(ServerSettings.EMAIL_PASSWORD));        
     }
 
     /**
@@ -75,6 +69,10 @@ public class ServerPanel extends javax.swing.JPanel {
         dbNameTextField = new javax.swing.JTextField();
         loginTextField = new javax.swing.JTextField();
         passwordField = new javax.swing.JPasswordField();
+        jPanel1 = new javax.swing.JPanel();
+        serverStateLabel = new javax.swing.JLabel();
+        startButton = new javax.swing.JButton();
+        stopButton = new javax.swing.JButton();
 
         initButton.setText("Инициализация");
         initButton.addActionListener(new java.awt.event.ActionListener() {
@@ -273,6 +271,47 @@ public class ServerPanel extends javax.swing.JPanel {
                 .addComponent(saveDbSettingsButton))
         );
 
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Server control"));
+
+        serverStateLabel.setText("server state");
+
+        startButton.setText("Start");
+        startButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                startButtonActionPerformed(evt);
+            }
+        });
+
+        stopButton.setText("Stop");
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(startButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(stopButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addComponent(serverStateLabel)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(serverStateLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(startButton)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(stopButton)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -283,16 +322,20 @@ public class ServerPanel extends javax.swing.JPanel {
                     .addComponent(initButton)
                     .addComponent(dbPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(mailPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(395, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(151, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(initButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(dbPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(dbPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(29, 29, 29)
                 .addComponent(mailPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 193, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(43, 43, 43))
         );
@@ -302,7 +345,7 @@ public class ServerPanel extends javax.swing.JPanel {
 
     private void initButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_initButtonActionPerformed
         // connect to DB and init it
-        roselSalesServer.initDB();
+        view.initButtonActionPerformed();
     }//GEN-LAST:event_initButtonActionPerformed
 
     private void hostTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hostTextFieldActionPerformed
@@ -320,7 +363,7 @@ public class ServerPanel extends javax.swing.JPanel {
         settings.setProperty(ServerSettings.DB_NAME, dbNameTextField.getText());
         settings.setProperty(ServerSettings.DB_LOGIN, loginTextField.getText());
         settings.put(ServerSettings.DB_PASSWORD, String.valueOf(passwordField.getPassword()));        
-        roselSalesServer.saveSettings(settings);
+        view.saveDatabaseSettings(settings);
     }//GEN-LAST:event_saveDbSettingsButtonActionPerformed
 
     private void serverTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_serverTextFieldActionPerformed
@@ -334,7 +377,7 @@ public class ServerPanel extends javax.swing.JPanel {
         settings.setProperty(ServerSettings.EMAIL_FROM, fromTextField.getText());
         settings.setProperty(ServerSettings.EMAIL_LOGIN, emailLoginTextField.getText());
         settings.put(ServerSettings.EMAIL_PASSWORD, String.valueOf(emailPwdTextField.getPassword()));        
-        roselSalesServer.saveEmailSettings(settings);
+        view.saveEmailSettings(settings);
     }//GEN-LAST:event_saveEmailSettingsButtonActionPerformed
 
     private void fromTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fromTextFieldActionPerformed
@@ -344,6 +387,10 @@ public class ServerPanel extends javax.swing.JPanel {
     private void emailPwdTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_emailPwdTextFieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_emailPwdTextFieldActionPerformed
+
+    private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_startButtonActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -365,12 +412,16 @@ public class ServerPanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JTextField loginTextField;
     private javax.swing.JPanel mailPanel;
     private javax.swing.JPasswordField passwordField;
     private javax.swing.JTextField portTextField;
     private javax.swing.JButton saveDbSettingsButton;
     private javax.swing.JButton saveEmailSettingsButton;
+    private javax.swing.JLabel serverStateLabel;
     private javax.swing.JTextField serverTextField;
+    private javax.swing.JButton startButton;
+    private javax.swing.JButton stopButton;
     // End of variables declaration//GEN-END:variables
 }
