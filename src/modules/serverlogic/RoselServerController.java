@@ -28,7 +28,7 @@ public class RoselServerController {
     }
     
     public void saveSettings(Properties settings){
-        roselServerModel.saveServerSettings();
+        roselServerModel.applySettings(settings);
     }
     
     public Properties getServerSettings(){

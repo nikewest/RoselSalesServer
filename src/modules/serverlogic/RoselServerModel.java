@@ -18,7 +18,8 @@ public class RoselServerModel {
     private ArrayList<RoselServerModelObserver> observers = new ArrayList<>(0);
     private static final Logger LOG = Logger.getLogger(RoselServerModel.class.getName());
     
-    public void init(){        
+    public void init(){  
+        serverSettings = ServerSettings.getEmptySettings();
         loadServerSettings();        
     }
 
@@ -27,7 +28,7 @@ public class RoselServerModel {
             serverSettings.putAll(settings);
             saveServerSettings();
         } else {
-            notifyObserversAboutError("Can't save settings!");
+            notifyObservers("Can't save settings!");
         }
     }
     
@@ -57,10 +58,11 @@ public class RoselServerModel {
             try (FileWriter fileWriter = new FileWriter(settingsFile)) {
                 serverSettings.store(fileWriter, null);
                 fileWriter.flush();
+                notifyObservers("Settings saved");
             }
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "Exception: ", ex);
-            notifyObserversAboutError("Can't save settings!");
+            notifyObservers("Can't save settings!");
         }
     }
     
@@ -68,7 +70,7 @@ public class RoselServerModel {
         return serverSettings;
     }
     
-    public void notifyObserversAboutError(String msg){
+    public void notifyObservers(String msg){
         for(RoselServerModelObserver obs : observers){
             obs.handleErrorMsg(msg);
         }
