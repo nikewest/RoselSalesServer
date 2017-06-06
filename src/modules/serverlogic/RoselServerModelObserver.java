@@ -6,6 +6,7 @@ package modules.serverlogic;
  */
 public interface RoselServerModelObserver {
     
-    public void handleErrorMsg(String msg);
+    public void handleMsg(String msg);
+    public void onServerStateChange(boolean state);    
     
 }

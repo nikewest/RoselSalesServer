@@ -27,17 +27,27 @@ public class RoselServerView implements RoselServerModelObserver{
     public void buildUI(){        
         JFrame mainFrame = new JFrame("Rosel server");
         mainPanel = new RoselServerPanel(this);
-        mainFrame.getContentPane().add(mainPanel);
+        mainFrame.getContentPane().add(mainPanel);        
+        
+        mainPanel.loadSettingsToUI(server.getServerSettings());
+        mainPanel.setServerStateLabel(false);
+        server.registerRoselServerModelObserver(this);
+        
         mainFrame.pack();
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainFrame.setVisible(true);
-        
-        mainPanel.loadSettingsToUI(server.getServerSettings());
-        server.registerRoselServerModelObserver(this);
     }
     
     public void initButtonActionPerformed(){
         serverController.initDB();
+    }
+    
+    public void startServer(){
+        serverController.startServer();
+    }
+    
+    public void stopServer(){
+        serverController.stopServer();
     }
     
     public void saveSettings(Properties settings){
@@ -45,8 +55,13 @@ public class RoselServerView implements RoselServerModelObserver{
     }
 
     @Override
-    public void handleErrorMsg(String msg) {
+    public void handleMsg(String msg) {
         JOptionPane.showMessageDialog(null, msg);
+    }
+
+    @Override
+    public void onServerStateChange(boolean state) {
+        mainPanel.setServerStateLabel(state);
     }
     
 }

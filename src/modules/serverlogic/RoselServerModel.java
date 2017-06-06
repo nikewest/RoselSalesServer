@@ -7,14 +7,19 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import modules.transport.AcceptClientException;
+import modules.transport.ServerTransport;
+import modules.transport.ServerTransportListener;
+import modules.transport.StartServerException;
 
 /**
  *
  * @author nikiforovnikita
  */
-public class RoselServerModel {
+public class RoselServerModel implements ServerTransportListener{
     
     private Properties serverSettings;    
+    private ServerTransport transport;
     private ArrayList<RoselServerModelObserver> observers = new ArrayList<>(0);
     private static final Logger LOG = Logger.getLogger(RoselServerModel.class.getName());
     
@@ -70,9 +75,39 @@ public class RoselServerModel {
         return serverSettings;
     }
     
+    // TRANSPORT
+    public void startServer(){
+        
+        if(transport==null){
+            transport = new ServerTransport();
+        }        
+        try {
+            transport.start();
+            LOG.info("Server started");
+            notifyStateChanged();
+            //transport.waitForConnections();
+        } catch (StartServerException | AcceptClientException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+            notifyObservers("Can't start server!");
+            return;
+        }
+    }
+    
+    public void stopServer(){
+        transport.stop();
+        LOG.info("Server stoped");
+        notifyStateChanged();
+    }
+    
+    public void notifyStateChanged(){
+        for(RoselServerModelObserver obs : observers){
+            obs.onServerStateChange(transport.isStarted());
+        }
+    }
+    
     public void notifyObservers(String msg){
         for(RoselServerModelObserver obs : observers){
-            obs.handleErrorMsg(msg);
+            obs.handleMsg(msg);
         }
     }
     
@@ -82,5 +117,12 @@ public class RoselServerModel {
     
     public void unregisterRoselServerModelObserver(RoselServerModelObserver obs){
         observers.remove(obs);
+    }
+
+    @Override
+    public void handleTransportException(Exception ex) {
+        if(ex instanceof AcceptClientException){
+            notifyStateChanged();
+        }
     }
 }

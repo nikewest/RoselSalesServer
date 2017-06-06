@@ -5,6 +5,7 @@
  */
 package roselsalesserver.UI;
 
+import java.awt.Color;
 import java.util.Properties;
 import modules.serverlogic.ServerSettings;
 
@@ -35,6 +36,14 @@ public class RoselServerPanel extends javax.swing.JPanel {
         emailPwdTextField.setText(settings.getProperty(ServerSettings.EMAIL_PASSWORD));        
     }
 
+    public void setServerStateLabel(boolean state){
+        if(state){
+            serverStateLabel.setBackground(Color.green);
+        } else {
+            serverStateLabel.setBackground(Color.red);
+        }
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -247,6 +256,7 @@ public class RoselServerPanel extends javax.swing.JPanel {
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Server control"));
 
         serverStateLabel.setText("server state");
+        serverStateLabel.setOpaque(true);
 
         startButton.setText("Start");
         startButton.addActionListener(new java.awt.event.ActionListener() {
@@ -256,6 +266,11 @@ public class RoselServerPanel extends javax.swing.JPanel {
         });
 
         stopButton.setText("Stop");
+        stopButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                stopButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -368,8 +383,12 @@ public class RoselServerPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_emailPwdTextFieldActionPerformed
 
     private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
-        // TODO add your handling code here:
+        view.startServer();
     }//GEN-LAST:event_startButtonActionPerformed
+
+    private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
+        view.stopServer();
+    }//GEN-LAST:event_stopButtonActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

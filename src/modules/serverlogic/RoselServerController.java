@@ -27,6 +27,14 @@ public class RoselServerController {
         
     }
     
+    public void startServer(){
+        roselServerModel.startServer();
+    }
+    
+    public void stopServer(){
+        roselServerModel.stopServer();
+    }
+    
     public void saveSettings(Properties settings){
         roselServerModel.applySettings(settings);
     }

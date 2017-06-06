@@ -3,8 +3,6 @@ package modules.transport;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -15,32 +13,34 @@ public class ServerTransport {
     private ServerSocket serverSocket;
     private int serverSocketPort;
     private boolean started = false;
+    private ServerTransportThread transportThread;
+    private ServerTransportListener transportListener;
+
+    public ServerTransport() {
+        serverSocketPort = 60611;
+    }
     
-    void start() throws StartServerException {
+    public void start() throws StartServerException, AcceptClientException {
         try {
             serverSocket = new ServerSocket(getServerSocketPort());            
             setStarted(true);                        
+            transportThread = new ServerTransportThread(this);
+            transportThread.start();
         } catch (IOException ex) {
-            throw new StartServerException(ex);
+            throw new StartServerException(ex);            
         }
     }
     
-    void waitForConnections() throws AcceptClientException{
-        while(isStarted()){
-            try {
-                Socket clientSocket = getServerSocket().accept();
-                new ClientConnectionHandler(clientSocket).start();
-            } catch (IOException ex) {
-                throw new AcceptClientException(ex);
-            }
-        }
-    }
-    
-    void stop() {
+    public void stop() {
         setStarted(false);
+        transportThread.interrupt();
         try {
             getServerSocket().close();
         } catch (IOException ignore) {}
+    }
+    
+    public void handleException(Exception ex){
+        transportListener.handleTransportException(ex);        
     }
 
     /**
@@ -60,22 +60,29 @@ public class ServerTransport {
     /**
      * @return the started
      */
-    private boolean isStarted() {
+    public boolean isStarted() {
         return started;
     }
 
     /**
      * @param started the started to set
      */
-    private void setStarted(boolean started) {
+    public void setStarted(boolean started) {
         this.started = started;
     }
 
     /**
      * @return the serverSocket
      */
-    private ServerSocket getServerSocket() {
+    public ServerSocket getServerSocket() {
         return serverSocket;
+    }
+
+    /**
+     * @param transportListener the transportListener to set
+     */
+    public void setTransportListener(ServerTransportListener transportListener) {
+        this.transportListener = transportListener;
     }
     
 }

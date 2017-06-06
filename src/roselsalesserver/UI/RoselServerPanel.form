@@ -361,6 +361,7 @@
         <Component class="javax.swing.JLabel" name="serverStateLabel">
           <Properties>
             <Property name="text" type="java.lang.String" value="server state"/>
+            <Property name="opaque" type="boolean" value="true"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JButton" name="startButton">
@@ -375,6 +376,9 @@
           <Properties>
             <Property name="text" type="java.lang.String" value="Stop"/>
           </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="stopButtonActionPerformed"/>
+          </Events>
         </Component>
       </SubComponents>
     </Container>
