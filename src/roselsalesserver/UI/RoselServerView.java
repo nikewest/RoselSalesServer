@@ -40,12 +40,8 @@ public class RoselServerView implements RoselServerModelObserver{
         serverController.initDB();
     }
     
-    public void saveDatabaseSettings(Properties settings){
-        
-    }
-    
-    public void saveEmailSettings(Properties settings){
-        
+    public void saveSettings(Properties settings){
+        serverController.saveSettings(settings);
     }
 
     @Override

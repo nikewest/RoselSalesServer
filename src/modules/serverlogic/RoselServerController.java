@@ -27,12 +27,8 @@ public class RoselServerController {
         
     }
     
-    public void saveDatabaseSettings(Properties settings){
-        
-    }
-    
-    public void saveEmailSettings(Properties settings){
-        
+    public void saveSettings(Properties settings){
+        roselServerModel.saveServerSettings();
     }
     
     public Properties getServerSettings(){

@@ -22,6 +22,15 @@ public class RoselServerModel {
         loadServerSettings();        
     }
 
+    public void applySettings(Properties settings){
+        if(ServerSettings.checkSettings(settings)){
+            serverSettings.putAll(settings);
+            saveServerSettings();
+        } else {
+            notifyObserversAboutError("Can't save settings!");
+        }
+    }
+    
     public void loadServerSettings() {        
         File settingsFile = new File("settings");
         if (settingsFile.exists()) {
