@@ -6,4 +6,5 @@ package modules.transport;
  */
 public interface ServerTransportListener {
     public void handleTransportException(Exception ex);
+    //public void handleTransportMessage(String msg);
 }
