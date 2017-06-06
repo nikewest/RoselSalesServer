@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
-import roselsalesserver.ServerApplication;
 
 /**
  *
@@ -12,10 +11,11 @@ import roselsalesserver.ServerApplication;
  */
 public class RoselServerApplication {
     
-    private static Logger LOG = Logger.getLogger(ServerApplication.class.getName());
+    private static Logger LOG = Logger.getLogger(RoselServerApplication.class.getName());
     
     public static void main(String[] args) {
-        RoselServerApplication app = new RoselServerApplication();
+        initLogger();
+        RoselServerApplication app = new RoselServerApplication();        
         app.startApp();
     }
     
@@ -24,13 +24,10 @@ public class RoselServerApplication {
         RoselServerController controller = new RoselServerController(serverModel);
     }
     
-    public static void initLogger() {
-        
+    public static void initLogger() {        
         try {
             LogManager.getLogManager().readConfiguration(RoselServerApplication.class.getResourceAsStream("logging.properties"));            
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, null, ex);
-        } catch (SecurityException ex) {
+        } catch (IOException | SecurityException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
     }
