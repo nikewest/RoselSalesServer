@@ -13,7 +13,6 @@ public class ServerTransportThread extends Thread {
 
     ServerTransport transport;
     
-    
     public ServerTransportThread(ServerTransport transport) {
         this.transport = transport;
     }
@@ -25,6 +24,10 @@ public class ServerTransportThread extends Thread {
         } catch (AcceptClientException ex) {
             transport.handleException(ex);
         }
+    }
+    
+    public void stopTransportThread(){
+        this.interrupt();
     }
     
     public void waitForConnections() throws AcceptClientException{        

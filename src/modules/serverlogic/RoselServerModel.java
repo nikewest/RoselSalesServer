@@ -82,10 +82,8 @@ public class RoselServerModel implements ServerTransportListener{
             transport = new ServerTransport();
         }        
         try {
-            transport.start();
-            LOG.info("Server started");
-            notifyStateChanged();
-            //transport.waitForConnections();
+            transport.start();            
+            notifyStateChanged();            
         } catch (StartServerException | AcceptClientException ex) {
             LOG.log(Level.SEVERE, null, ex);
             notifyObservers("Can't start server!");
@@ -94,8 +92,7 @@ public class RoselServerModel implements ServerTransportListener{
     }
     
     public void stopServer(){
-        transport.stop();
-        LOG.info("Server stoped");
+        transport.stop();        
         notifyStateChanged();
     }
     
