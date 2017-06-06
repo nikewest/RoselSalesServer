@@ -34,14 +34,12 @@ public class ClientConnectionHandler extends Thread {
             //handle client connection exception
         }        
         
-        //check client
-            // - new => write to db tables
-            // - not confirmed => close connection
-            // - confirmed => resume
-            
-            //check intention
-            // - get updates => send updates
-            // - send orders => recieve orders
+        String clientRequest = read();
+        //handleClientRequest
+        
+        //get info, send info
+        //or
+        //read info and write
         
         writer.close();
         try {
