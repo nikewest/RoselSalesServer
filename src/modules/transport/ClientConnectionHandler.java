@@ -7,6 +7,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -44,6 +46,11 @@ public class ClientConnectionHandler extends Thread {
         writer.close();
         try {
             reader.close();
+        } catch (IOException ignore) {            
+        }
+        
+        try {
+            clientSocket.close();
         } catch (IOException ignore) {            
         }
     }

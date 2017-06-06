@@ -80,6 +80,7 @@ public class RoselServerModel implements ServerTransportListener{
         
         if(transport==null){
             transport = new ServerTransport();
+            transport.setTransportListener(this);
         }        
         try {
             transport.start();            
