@@ -16,7 +16,7 @@ import modules.serverlogic.ServerSettings;
  */
 public class DatabaseManager {
     
-    private static Logger log = Logger.getLogger(DatabaseManager.class.getName());
+    private static final Logger LOG = Logger.getLogger(DatabaseManager.class.getName());
     
     private static final String JDBC_DRIVER_POSTGRE = "org.postgresql.Driver";    
     private static final String JDBC_DRIVER_SQLITE = "org.sqlite.JDBC";    
@@ -35,6 +35,10 @@ public class DatabaseManager {
         setConnectionProperties(prop);
         initDriver();        
     }
+    
+    private DatabaseManager(){        
+        initDriver();        
+    }
 
     public synchronized Connection getDbConnection() throws Exception {
         if(dbConnection == null || dbConnection.isClosed()){
@@ -51,9 +55,9 @@ public class DatabaseManager {
                         throw new Exception("Wrong properties!");
                     }
                     databaseManagerInstance = new DatabaseManager(prop);
-                }
+                } 
             }
-        }
+        }        
         return databaseManagerInstance;                            
     }
     
@@ -84,7 +88,7 @@ public class DatabaseManager {
         try {        
             Class.forName(driverName);            
         } catch (ClassNotFoundException ex) {
-            log.log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
             driverInitialized = false;
         }
         driverInitialized = true;
@@ -105,27 +109,26 @@ public class DatabaseManager {
             try {
                 dbConnection.close();
             } catch (SQLException ex) {
-                log.log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
             }
         }
     }
     
     public ResultSet selectQuery(String queryString) throws SQLException, Exception{
-        if(dbConnection == null || dbConnection.isClosed()){
-            initConnection();
-        }
-        Statement stmt = null;
-        try {
-            stmt = dbConnection.createStatement();                    
+        try (Statement stmt = getDbConnection().createStatement()) {                    
             return stmt.executeQuery(queryString);
         } catch (SQLException ex) {
-            log.log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
             throw ex;
         }
-        finally{
-            if(stmt!=null){
-                stmt.close();
-            }
+    }
+    
+    public void executeQuery(String queryString) throws SQLException, Exception{
+        try (Statement stmt = getDbConnection().createStatement()) {                    
+            stmt.execute(queryString);
+        } catch (SQLException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+            throw ex;
         }
     }
 }

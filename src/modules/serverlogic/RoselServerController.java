@@ -1,9 +1,6 @@
 package modules.serverlogic;
 
 import java.util.Properties;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import roselsalesserver.UI.RoselServerPanel;
 import roselsalesserver.UI.RoselServerView;
 
 /**
@@ -17,7 +14,7 @@ public class RoselServerController {
     
     public RoselServerController(RoselServerModel roselServerModel) {        
         this.roselServerModel = roselServerModel;                
-        roselServerModel.init();
+        roselServerModel.init();       
         
         roselServerView = new RoselServerView(this, roselServerModel);
         roselServerView.buildUI();

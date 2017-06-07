@@ -7,13 +7,13 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import modules.serverlogic.RoselServerController;
 import modules.serverlogic.RoselServerModel;
-import modules.serverlogic.RoselServerModelObserver;
+import modules.serverlogic.RoselServerModelObserverInterface;
 
 /**
  *
  * @author nikiforovnikita
  */
-public class RoselServerView implements RoselServerModelObserver{
+public class RoselServerView implements RoselServerModelObserverInterface{
     
     private final RoselServerController serverController;
     private final RoselServerModel server;

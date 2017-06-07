@@ -53,6 +53,10 @@ public class ServerTransport {
         transportListener.handleTransportException(ex);        
     }
 
+    public ClientsRequestHandlerInterface getRequestHandler(){
+        return transportListener.getRequestHandler();
+    }
+    
     /**
      * @return the serverSocketPort
      */

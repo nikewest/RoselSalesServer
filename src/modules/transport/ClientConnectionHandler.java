@@ -14,33 +14,51 @@ import java.util.logging.Logger;
  *
  * @author nikiforovnikita
  */
+
 public class ClientConnectionHandler extends Thread {
 
     private final Socket clientSocket;
     private PrintWriter writer;    
     private BufferedReader reader;    
+    private ClientsRequestHandlerInterface requestHandler;
     
-    public ClientConnectionHandler(Socket clientSocket) {
-        this.clientSocket = clientSocket;        
+    public ClientConnectionHandler(Socket clientSocket, ClientsRequestHandlerInterface requestHandler) {
+        this.clientSocket = clientSocket;  
+        this.requestHandler = requestHandler;
     }
     
     @Override
-    public void run() {
-        
+    public void run() {        
         try {
             writer = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream(), StandardCharsets.UTF_8));
             reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
-        } catch (IOException ex) {
-            //handle client connection exception
+        } catch (IOException ex) {            
+            requestHandler.handleException(ex);            
+            stopHandle();
         }        
         
-        String clientRequest = read();
-        //handleClientRequest
+        String clientsRequest = read();
+        try {            
+            TransportMessage request = TransportMessage.fromString(clientsRequest);            
+            TransportMessage response = requestHandler.handleRequest(request);
+            write(response.toString());            
+        } catch (TransportMessageException ex) {            
+            requestHandler.handleException(ex);
+            stopHandle();
+        } catch (Exception ex) {        
+            requestHandler.handleException(ex);
+            stopHandle();
+        }
         
-        //get info, send info
-        //or
-        //read info and write
-        
+        freeRes();
+    }
+    
+    public void stopHandle(){
+        freeRes();
+        this.interrupt();
+    }
+    
+    public void freeRes(){
         writer.close();
         try {
             reader.close();
@@ -61,7 +79,7 @@ public class ClientConnectionHandler extends Thread {
                 stringBuilder.append(line);
             }
         } catch (IOException ex) {
-            //handle exception
+            requestHandler.handleException(ex);            
         }
         return stringBuilder.toString();
     }

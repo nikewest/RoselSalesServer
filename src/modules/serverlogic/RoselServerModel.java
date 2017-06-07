@@ -8,9 +8,11 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import modules.transport.AcceptClientException;
+import modules.transport.ClientsRequestHandlerInterface;
 import modules.transport.ServerTransport;
 import modules.transport.ServerTransportListener;
 import modules.transport.StartServerException;
+import roselsalesserver.db.DatabaseManager;
 
 /**
  *
@@ -19,13 +21,19 @@ import modules.transport.StartServerException;
 public class RoselServerModel implements ServerTransportListener{
     
     private Properties serverSettings;    
-    private ServerTransport transport;
-    private ArrayList<RoselServerModelObserver> observers = new ArrayList<>(0);
+    private ServerTransport transport;    
+    private RequestHandler requestHandler;
+    private ArrayList<RoselServerModelObserverInterface> observers = new ArrayList<>(0);
     private static final Logger LOG = Logger.getLogger(RoselServerModel.class.getName());
     
-    public void init(){  
-        serverSettings = ServerSettings.getEmptySettings();
+    public void init() {  
+        serverSettings = ServerSettings.getEmptySettings();        
         loadServerSettings();        
+        try {        
+            requestHandler = new RequestHandler(this);        
+        } catch (Exception ex) {            
+            LOG.log(Level.SEVERE, null, ex);
+        }
     }
 
     public void applySettings(Properties settings){
@@ -48,8 +56,7 @@ public class RoselServerModel implements ServerTransportListener{
             } catch (Exception ex) {
                 LOG.log(Level.SEVERE, null, ex);
             }
-        }
-        
+        }        
         serverSettings = ServerSettings.getEmptySettings();
         saveServerSettings();
     }
@@ -93,27 +100,27 @@ public class RoselServerModel implements ServerTransportListener{
     }
     
     public void stopServer(){
-        transport.stop();        
+        transport.stop();                
         notifyStateChanged();
     }
     
     public void notifyStateChanged(){
-        for(RoselServerModelObserver obs : observers){
+        for(RoselServerModelObserverInterface obs : observers){
             obs.onServerStateChange(transport.isStarted());
         }
     }
     
     public void notifyObservers(String msg){
-        for(RoselServerModelObserver obs : observers){
+        for(RoselServerModelObserverInterface obs : observers){
             obs.handleMsg(msg);
         }
     }
     
-    public void registerRoselServerModelObserver(RoselServerModelObserver obs){
+    public void registerRoselServerModelObserver(RoselServerModelObserverInterface obs){
         observers.add(obs);
     }
     
-    public void unregisterRoselServerModelObserver(RoselServerModelObserver obs){
+    public void unregisterRoselServerModelObserver(RoselServerModelObserverInterface obs){
         observers.remove(obs);
     }
 
@@ -123,4 +130,10 @@ public class RoselServerModel implements ServerTransportListener{
             notifyStateChanged();
         }
     }
+    
+    @Override
+    public ClientsRequestHandlerInterface getRequestHandler() {
+        return requestHandler;
+    }
+   
 }
