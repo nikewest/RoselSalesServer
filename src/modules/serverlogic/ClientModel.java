@@ -1,5 +1,7 @@
 package modules.serverlogic;
 
+import java.util.HashMap;
+
 /**
  *
  * @author nikiforovnikita
@@ -9,7 +11,8 @@ public class ClientModel {
     private String name;
     private String device_id;
     private long _id;
-
+    private HashMap<String,Long> updatedTableVersions;
+    
     /**
      * @return the manager_id
      */
@@ -64,5 +67,19 @@ public class ClientModel {
      */
     public void setId(long _id) {
         this._id = _id;
+    }
+
+    /**
+     * @return the updatedTableVersions
+     */
+    public HashMap<String,Long> getUpdatedTableVersions() {
+        return updatedTableVersions;
+    }
+
+    /**
+     * @param updatedTableVersions the updatedTableVersions to set
+     */
+    public void setUpdatedTableVersions(HashMap<String,Long> updatedTableVersions) {
+        this.updatedTableVersions = updatedTableVersions;
     }
 }

@@ -34,7 +34,7 @@ public class ServerTransportThread extends Thread {
         while(transport.isStarted()){
             try {
                 Socket clientSocket = transport.getServerSocket().accept();
-                new ClientConnectionHandler(clientSocket, transport.getRequestHandler()).start();
+                new ClientConnectionHandler(clientSocket, transport.getTransportListener()).start();
             } catch (IOException ex) {
                 if(!isInterrupted()) throw new AcceptClientException(ex);
             }

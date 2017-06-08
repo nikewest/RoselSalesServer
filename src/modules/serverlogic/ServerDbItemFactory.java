@@ -1,5 +1,6 @@
-package roselsalesserver;
+package modules.serverlogic;
 
+import modules.serverlogic.DbItem;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -9,11 +10,10 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-public class ServerDbItemFactory extends DbItemFactory{
+public class ServerDbItemFactory {
         
-    private static Logger log = Logger.getLogger(ServerDbItemFactory.class.getName());
+    private static Logger LOG = Logger.getLogger(ServerDbItemFactory.class.getName());
     
-    @Override
     public DbItem fillFromJSONString(String jsonString) {
         DbItem dbItem = new DbItem();
         try {
@@ -32,7 +32,7 @@ public class ServerDbItemFactory extends DbItemFactory{
                 dbItem.addItemValue(valueName, valueType, value);
             }
         } catch(Exception ex){
-            log.log(Level.SEVERE, "Exception: ", ex);
+            LOG.log(Level.SEVERE, "Exception: ", ex);
             return null;
         }
         return dbItem;

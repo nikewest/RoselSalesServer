@@ -1,5 +1,7 @@
 package roselsalesserver;
 
+import modules.serverlogic.ServerDbItemFactory;
+import modules.serverlogic.DbItem;
 import modules.serverlogic.ServerSettings;
 import java.io.BufferedReader;
 import java.io.File;
@@ -48,7 +50,7 @@ public class RoselSalesServer {
     JFrame mainFrame;
     JPanel mainPanel;
     Properties serverSettings;
-    private static Logger log = Logger.getLogger(RoselSalesServer.class.getName());
+    private static final Logger log = Logger.getLogger(RoselSalesServer.class.getName());
 
     public static final int SERVER_SOCKET = 60611;
 

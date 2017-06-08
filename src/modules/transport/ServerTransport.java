@@ -50,13 +50,9 @@ public class ServerTransport {
     }
     
     public void handleException(Exception ex){
-        transportListener.handleTransportException(ex);        
+        getTransportListener().handleTransportException(ex);        
     }
 
-    public ClientsRequestHandlerInterface getRequestHandler(){
-        return transportListener.getRequestHandler();
-    }
-    
     /**
      * @return the serverSocketPort
      */
@@ -97,6 +93,13 @@ public class ServerTransport {
      */
     public void setTransportListener(ServerTransportListener transportListener) {
         this.transportListener = transportListener;
+    }
+
+    /**
+     * @return the transportListener
+     */
+    public ServerTransportListener getTransportListener() {
+        return transportListener;
     }
     
 }

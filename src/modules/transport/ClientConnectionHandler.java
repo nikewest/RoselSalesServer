@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import modules.serverlogic.ClientModel;
 
 /**
  *
@@ -20,11 +21,12 @@ public class ClientConnectionHandler extends Thread {
     private final Socket clientSocket;
     private PrintWriter writer;    
     private BufferedReader reader;    
-    private ClientsRequestHandlerInterface requestHandler;
+    private ServerTransportListener server;
+    private ClientModel clientModel;
     
-    public ClientConnectionHandler(Socket clientSocket, ClientsRequestHandlerInterface requestHandler) {
+    public ClientConnectionHandler(Socket clientSocket, ServerTransportListener server) {
         this.clientSocket = clientSocket;  
-        this.requestHandler = requestHandler;
+        this.server = server;
     }
     
     @Override
@@ -32,25 +34,31 @@ public class ClientConnectionHandler extends Thread {
         try {
             writer = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream(), StandardCharsets.UTF_8));
             reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
-        } catch (IOException ex) {            
-            requestHandler.handleException(ex);            
+        } catch (IOException ex) {                        
             stopHandle();
         }        
         
         String clientsRequest = read();
-        try {            
+        try {                          
             TransportMessage request = TransportMessage.fromString(clientsRequest);            
-            TransportMessage response = requestHandler.handleRequest(request);
-            write(response.toString());            
-        } catch (TransportMessageException ex) {            
-            requestHandler.handleException(ex);
+            clientModel = server.buildClientModel(request);
+            TransportMessage response = server.handleClientRequest(request, clientModel);
+            write(response.toString());
+            if (response.getIntention().equals(TransportMessage.UPDATE)) {
+                server.commitClientsUpdate(clientModel);
+            }
+        } catch (TransportMessageException ex) {                        
             stopHandle();
         } catch (Exception ex) {        
-            requestHandler.handleException(ex);
+            server.handleClientHandlerException(ex);
             stopHandle();
         }
         
         freeRes();
+        try {
+            finalize();
+        } catch (Throwable ignore) {            
+        }
     }
     
     public void stopHandle(){
@@ -79,7 +87,7 @@ public class ClientConnectionHandler extends Thread {
                 stringBuilder.append(line);
             }
         } catch (IOException ex) {
-            requestHandler.handleException(ex);            
+            server.handleClientHandlerException(ex);
         }
         return stringBuilder.toString();
     }
