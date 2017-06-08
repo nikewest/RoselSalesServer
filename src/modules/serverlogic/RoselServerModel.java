@@ -3,19 +3,35 @@ package modules.serverlogic;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import modules.transport.AcceptClientException;
 import modules.transport.ServerTransport;
 import modules.transport.ServerTransportListener;
 import modules.transport.StartServerException;
 import modules.transport.TransportMessage;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONArray;
+import org.json.simple.parser.ParseException;
 import roselsalesserver.db.DatabaseManager;
 
 /**
@@ -161,7 +177,7 @@ public class RoselServerModel implements ServerTransportListener{
                 response.setBody(getUpdates(clientModel));                
                 break;
             case TransportMessage.POST: // TYPE "POST" - request with orders
-                postOrders(request.getBody());
+                postOrders(request.getBody(), clientModel);
                 response.setIntention(TransportMessage.POST_COMMIT);
                 break;
             case TransportMessage.UPDATE_COMMIT:
@@ -307,8 +323,7 @@ public class RoselServerModel implements ServerTransportListener{
             }            
             updatedTableVersions.put("STOCK", lastVersion);
         }
-        resSet.close();
-        
+        resSet.close();        
         return updates;
     }
     
@@ -387,13 +402,164 @@ public class RoselServerModel implements ServerTransportListener{
                 + "     INNER JOIN STOCK AS S ON S._id = temp.item_id";                
     }
 
-    private boolean postOrders(ArrayList<String> orders){
+    private boolean postOrders(ArrayList<String> ordersInJSON, ClientModel clientModel) {
+        if (!postOrdersInJSON(ordersInJSON, clientModel)) {
+            return false;
+        }
+        if (ordersInJSON.size() > 0) {            
+            try {
+                sendNotificationsForOrders(ordersInJSON, clientModel);
+            } catch (ParseException ex) {
+                LOG.log(Level.SEVERE, null, ex);
+            } catch (AddressException ex) {
+                LOG.log(Level.SEVERE, null, ex);
+            }
+        }
         return true;
-    }        
+    }  
     
-    @Override
-    public void handleClientHandlerException(Exception ex) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public boolean postOrdersInJSON(ArrayList<String> ordersInJSON, ClientModel clientModel) {        
+        ResultSet rs = null;
+        Connection dbConnection = null;
+        Statement stmt = null;
+        PreparedStatement pstmt = null;
+        String orderDate;
+        String shippingDate;
+        long order_id;
+        String insertQuery;
+
+        JSONParser parser = new JSONParser();
+        org.json.simple.JSONObject jsonObject;
+        JSONArray lines;
+        JSONObject orderLine;
+
+        try {
+            dbConnection = dbManager.getDbConnection();             
+            stmt = dbConnection.createStatement();            
+            for (String jsonString : ordersInJSON) {
+                jsonObject = (JSONObject) parser.parse(jsonString);
+                if (jsonObject.get("order_date") == null) {
+                    orderDate = "null";
+                } else {
+                    orderDate = "'" + jsonObject.get("order_date").toString() + "'";
+                };
+                if (jsonObject.get("shipping_date") == null) {
+                    shippingDate = "null";
+                } else {
+                    shippingDate = "'" + jsonObject.get("shipping_date").toString() + "'";
+                };
+                insertQuery = "INSERT INTO ORDERS (device_id, client_id, order_date, shipping_date, sum, comment, address_id) "
+                        + "VALUES ("
+                        + clientModel.getId() + ", "
+                        + jsonObject.get("client_id") + ", "
+                        + orderDate + ", "
+                        + shippingDate + ", "
+                        + "ROUND(" + jsonObject.get("sum") + ",2), '"
+                        + jsonObject.get("comment") + "', "
+                        + jsonObject.get("address_id") + ");";
+                pstmt = dbConnection.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS);
+                if (pstmt.executeUpdate() == 0) {
+                    return false;
+                };
+                rs = pstmt.getGeneratedKeys();
+                if (!rs.next()) {
+                    return false;
+                }
+                order_id = rs.getLong(1);
+
+                lines = (JSONArray) jsonObject.get("lines");
+                int len = lines.size();
+                for (int i = 0; i < len; i++) {
+                    orderLine = (JSONObject) lines.get(i);
+                    insertQuery = "INSERT INTO ORDERLINES (order_id, product_id, quantity, price, sum) VALUES (" + String.format("%d", order_id) + ", " + orderLine.get("product_id").toString() + ", " + orderLine.get("quantity").toString() + "," + orderLine.get("price").toString() + ", " + orderLine.get("sum").toString() + ");";
+                    stmt.execute(insertQuery);
+                }
+            }            
+        } catch (Exception e) {            
+            LOG.log(Level.SEVERE, "Exception: ", e);
+            return false;
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException ex) {
+                }
+            }
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException ex) {
+                }
+            }
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException ignore) {
+                }
+            }
+        }
+        return true;
+    }
+    
+    public void sendNotificationsForOrders(ArrayList<String> ordersInJSONArrayList, ClientModel clientModel) throws ParseException, AddressException {
+        for (String jsonString : ordersInJSONArrayList) {
+            JSONParser parser = new JSONParser();
+            JSONObject jsonObject = (JSONObject) parser.parse(jsonString);
+            StringBuilder msgText = new StringBuilder();
+            msgText.append("Поступил новый заказ из мобильного приложения");
+            if (clientModel.getName() != null && clientModel.getName().length() > 0) {
+                msgText.append(" от ");
+                msgText.append(clientModel.getName());
+            }
+            msgText.append('\n').append("Клиент: ").append(getClientNameByID((Long) jsonObject.get("client_id")));
+            sendNotification(msgText.toString());
+        }
+    }
+    
+    public String getClientNameByID(long clientId) {
+        String clientName = null;
+        try {                        
+            ResultSet result = dbManager.selectQuery("SELECT name FROM CLIENTS WHERE _id = " + clientId);
+            if (result.next()) {
+                clientName = result.getString("name");
+            }             
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, "Exception: ", ex);            
+        }
+        return clientName;
+    }
+    
+    public void sendNotification(String msgText) throws AddressException {
+        Properties p = getEmailProperties();
+        p.put("recipient", "OL@rosel.ru, nikiforov.nikita@rosel.ru");
+        p.put("subject", "Новый заказ из мобильного приложения");
+        p.put("text", msgText);
+        sendEmail(p);
+    }
+    
+    public Properties getEmailProperties() {
+        Properties emailprops = new Properties();
+        emailprops.setProperty("mail.smtp.host", serverSettings.getProperty(ServerSettings.EMAIL_HOST));
+        emailprops.setProperty("mail.smtp.port", serverSettings.getProperty(ServerSettings.EMAIL_PORT));
+        emailprops.setProperty("from", serverSettings.getProperty(ServerSettings.EMAIL_FROM));
+        emailprops.setProperty("login", serverSettings.getProperty(ServerSettings.EMAIL_LOGIN));
+        emailprops.setProperty("pwd", serverSettings.getProperty(ServerSettings.EMAIL_PASSWORD));
+        return emailprops;
+    }
+    
+    public void sendEmail(Properties p) {
+        Session session = Session.getDefaultInstance(p, null);
+        MimeMessage msg = new MimeMessage(session);
+        try {
+            msg.setFrom(p.getProperty("from"));
+            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(p.getProperty("recipient")));
+            msg.setSubject(p.getProperty("subject"));
+            msg.setSentDate(new Date());
+            msg.setText(p.getProperty("text"));
+            Transport.send(msg, p.getProperty("login"), p.getProperty("pwd"));
+        } catch (MessagingException ex) {
+            LOG.log(Level.SEVERE, "Exception: ", ex);
+        }
     }
 
     @Override
@@ -425,5 +591,4 @@ public class RoselServerModel implements ServerTransportListener{
             }
         }        
     }    
-    
 }

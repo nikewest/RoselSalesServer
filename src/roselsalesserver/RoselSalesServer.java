@@ -359,7 +359,7 @@ public class RoselSalesServer {
 
             boolean getOrders() throws ParseException, AddressException {
                 String line;
-                ArrayList<String> ordersInJSON = new ArrayList<String>();
+                ArrayList<String> ordersInJSON = new ArrayList<>();
                 try {
                     while ((line = reader.readLine()) != null && !line.equals(ExchangeProtocol.CONFIRMATION_REQUEST)) {
                         ordersInJSON.add(line);

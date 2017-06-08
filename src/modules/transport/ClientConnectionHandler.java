@@ -49,8 +49,7 @@ public class ClientConnectionHandler extends Thread {
             }
         } catch (TransportMessageException ex) {                        
             stopHandle();
-        } catch (Exception ex) {        
-            server.handleClientHandlerException(ex);
+        } catch (Exception ex) {                    
             stopHandle();
         }
         
@@ -86,8 +85,7 @@ public class ClientConnectionHandler extends Thread {
             while((line = reader.readLine()) != null){
                 stringBuilder.append(line);
             }
-        } catch (IOException ex) {
-            server.handleClientHandlerException(ex);
+        } catch (IOException ex) {            
         }
         return stringBuilder.toString();
     }
