@@ -14,12 +14,13 @@ import roselsalesserver.db.DatabaseManager;
  */
 public class RequestHandler implements ClientsRequestHandlerInterface{
     
-    //private final RoselServerModel server;    
+    private final RoselServerModel server;    
     private final static Logger LOG = Logger.getLogger(RequestHandler.class.getName());        
-    DatabaseManager databaseManager;
+    private DatabaseManager databaseManager;
     
     public RequestHandler(RoselServerModel server) throws Exception {        
-        databaseManager = DatabaseManager.getDatabaseManager(server.getServerSettings());        
+        this.server = server;
+        this.databaseManager = server.getDbManager();
     }
 
     @Override
@@ -42,19 +43,22 @@ public class RequestHandler implements ClientsRequestHandlerInterface{
                 response.setEmptyBody();
                 return response;
             }
-        } catch (Exception ex) {            
+        } catch (Exception ex) {             
             throw ex;
         }
         
         //check intention
         switch(request.getIntention()){
             case TransportMessage.GET: // TYPE "GET" - request for data updates 
+                response.setIntention(TransportMessage.UPDATE);
+                response.setBody(getUpdates(clientModel));
                 break;
             case TransportMessage.POST: // TYPE "POST" - request with orders
+                response.setIntention(TransportMessage.POST_COMMIT);
                 break;
             default: //if wrong type?
                 break;
-        }
+        }        
         
         return response;
     }
@@ -62,7 +66,7 @@ public class RequestHandler implements ClientsRequestHandlerInterface{
     public boolean checkDevice(String device_id, ClientModel clientModel) throws Exception{
         boolean checkResult = false;
         if (device_id == null) {
-                return checkResult;
+            return checkResult;
         }
         
         //get device_info
@@ -88,15 +92,12 @@ public class RequestHandler implements ClientsRequestHandlerInterface{
         return checkResult;
     }
     
-    void initializeDevice(String device_id) throws Exception {
-       
-        databaseManager.executeQuery(getNewDeviceQuery(device_id));
-        
+    void initializeDevice(String device_id) throws Exception {       
+        databaseManager.executeQuery(getNewDeviceQuery(device_id));        
         ResultSet res = databaseManager.selectQuery(getDeviceInfoQuery(device_id));
         res.next();
         long savedID = res.getLong("_id");
-        res.close();
-        
+        res.close();        
         for (String tableName : getVersionTables()) {                        
             databaseManager.executeQuery(getNewVersionsTablesQuery(tableName, savedID));
         }
@@ -126,5 +127,9 @@ public class RequestHandler implements ClientsRequestHandlerInterface{
                     + "INSERT INTO VERSIONS (device_id, table_name, version) VALUES (" + String.format("%d", _idOfDevice) + ", '" + tableName + "', 0)"
                     + "ELSE "
                     + "UPDATE VERSIONS SET version = 0 WHERE device_id = " + String.format("%d", _idOfDevice) + " AND table_name = '" + tableName + "';";
+    }
+    
+    private ArrayList<String> getUpdates(ClientModel clientModel){        
+        return new ArrayList<String>(0);
     }
 }

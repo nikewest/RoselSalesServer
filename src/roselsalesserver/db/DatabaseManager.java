@@ -25,8 +25,8 @@ public class DatabaseManager {
     private String driverName;
     private String dbUrl;
     private String dbLogin;
-    private String dbPwd;    
-    private boolean driverInitialized = false;    
+    private String dbPwd;
+    private boolean driverInitialized = false;
     private Connection dbConnection = null;
     
     private volatile static DatabaseManager databaseManagerInstance = null;
@@ -36,16 +36,12 @@ public class DatabaseManager {
         initDriver();        
     }
     
-    private DatabaseManager(){        
-        initDriver();        
-    }
-
-    public synchronized Connection getDbConnection() throws Exception {
+    public Connection getDbConnection() throws Exception {
         if(dbConnection == null || dbConnection.isClosed()){
             initConnection();
         }
         return dbConnection;
-    }    
+    }
     
     public static DatabaseManager getDatabaseManager(Properties prop) throws Exception {
         if (databaseManagerInstance == null) {
@@ -114,6 +110,8 @@ public class DatabaseManager {
         }
     }
     
+    
+    // probably not needed
     public ResultSet selectQuery(String queryString) throws SQLException, Exception{
         try (Statement stmt = getDbConnection().createStatement()) {                    
             return stmt.executeQuery(queryString);

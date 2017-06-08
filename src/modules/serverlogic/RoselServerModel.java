@@ -3,6 +3,7 @@ package modules.serverlogic;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -22,13 +23,14 @@ public class RoselServerModel implements ServerTransportListener{
     
     private Properties serverSettings;    
     private ServerTransport transport;    
+    private DatabaseManager dbManager;    
     private RequestHandler requestHandler;
     private ArrayList<RoselServerModelObserverInterface> observers = new ArrayList<>(0);
     private static final Logger LOG = Logger.getLogger(RoselServerModel.class.getName());
     
     public void init() {  
         serverSettings = ServerSettings.getEmptySettings();        
-        loadServerSettings();        
+        loadServerSettings();                
         try {        
             requestHandler = new RequestHandler(this);        
         } catch (Exception ex) {            
@@ -82,8 +84,20 @@ public class RoselServerModel implements ServerTransportListener{
         return serverSettings;
     }
     
+    public DatabaseManager getDbManager(){
+        return dbManager;
+    }
+    
     // TRANSPORT
     public void startServer(){
+        
+        try {
+            dbManager = DatabaseManager.getDatabaseManager(serverSettings);            
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, null, ex);
+            notifyObservers("Can't connect to DB!");
+            return;
+        }
         
         if(transport==null){
             transport = new ServerTransport();
@@ -100,7 +114,8 @@ public class RoselServerModel implements ServerTransportListener{
     }
     
     public void stopServer(){
-        transport.stop();                
+        transport.stop();
+        dbManager.endWork();
         notifyStateChanged();
     }
     

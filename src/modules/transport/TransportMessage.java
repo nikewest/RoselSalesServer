@@ -11,6 +11,7 @@ public class TransportMessage {
     //intentions TYPES
     public static final String NOT_REG = "ROSEL.NOT_REG"; //device not registered on server
     public static final String UPDATE = "ROSEL.UPDATE"; //device not registered on server
+    public static final String POST_COMMIT = "ROSEL.UPDATE"; //device not registered on server
     
     public static final String GET = "ROSEL.GET"; // intention to get updates
     public static final String POST = "ROSEL.POST"; //intention to post orders
