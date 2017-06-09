@@ -26,7 +26,7 @@ import javax.mail.internet.MimeMessage;
 import modules.transport.AcceptClientException;
 import modules.transport.ServerTransport;
 import modules.transport.ServerTransportListener;
-import modules.transport.StartServerException;
+import modules.transport.TransportException;
 import modules.transport.TransportMessage;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.JSONObject;
@@ -105,7 +105,8 @@ public class RoselServerModel implements ServerTransportListener{
     public void startServer(){
         
         try {
-            dbManager = DatabaseManager.getDatabaseManager(serverSettings);            
+            dbManager = DatabaseManager.getDatabaseManager(serverSettings); 
+            dbManager.initConnection();
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
             notifyObservers("Can't connect to DB!");
@@ -119,15 +120,18 @@ public class RoselServerModel implements ServerTransportListener{
         try {
             transport.start();            
             notifyStateChanged();            
-        } catch (StartServerException | AcceptClientException ex) {
+        } catch (TransportException | AcceptClientException ex) {
             LOG.log(Level.SEVERE, null, ex);
             notifyObservers("Can't start server!");
+            stopServer();
             return;
         }
     }
     
     public void stopServer(){
-        transport.stop();
+        if(transport.isStarted()){
+            transport.stop();
+        }
         dbManager.endWork();
         notifyStateChanged();
     }
@@ -153,17 +157,15 @@ public class RoselServerModel implements ServerTransportListener{
     }
 
     @Override
-    public void handleTransportException(Exception ex) {
-        if(ex instanceof AcceptClientException){
-            notifyStateChanged();
-        }
+    public synchronized void handleTransportException(Exception ex) {        
+        LOG.log(Level.SEVERE, "Transport Exception:", ex);
+        stopServer();
     }
 
     @Override
-    public TransportMessage handleClientRequest(TransportMessage request, ClientModel clientModel) throws Exception {
+    public synchronized TransportMessage handleClientRequest(TransportMessage request, ClientModel clientModel) throws SQLException, ParseException {
         TransportMessage response = new TransportMessage();
-        response.setDevice_id("SERVER");
-        
+        response.setDevice_id(TransportMessage.SERVER_ID);        
         if(clientModel==null){
             response.setIntention(TransportMessage.NOT_REG);
             response.setEmptyBody();
@@ -179,9 +181,7 @@ public class RoselServerModel implements ServerTransportListener{
             case TransportMessage.POST: // TYPE "POST" - request with orders
                 postOrders(request.getBody(), clientModel);
                 response.setIntention(TransportMessage.POST_COMMIT);
-                break;
-            case TransportMessage.UPDATE_COMMIT:
-                commitClientsUpdate(clientModel);                
+                break;                
             default: //if wrong type?
                 break;
         }
@@ -189,43 +189,6 @@ public class RoselServerModel implements ServerTransportListener{
         return response;
     }
     
-    public boolean checkDevice(String device_id, ClientModel clientModel) throws Exception{
-        boolean checkResult = false;
-        if (device_id == null) {
-            return checkResult;
-        }
-        
-        try(ResultSet res = dbManager.selectQuery(getDeviceInfoQuery(device_id))) {
-            if (res.next()) {
-                if (res.getBoolean("confirmed")) {                    
-                    clientModel = new ClientModel();
-                    clientModel.setId(res.getLong("_id"));
-                    clientModel.setDevice_id(device_id);
-                    clientModel.setManager_id(res.getLong("manager_id"));
-                    clientModel.setName(res.getString("name"));
-                    checkResult = true;
-                } 
-            } else {
-                initializeDevice(device_id);
-            }
-        } catch (Exception ex) {            
-            throw new Exception("Can't query to database");
-        } 
-        
-        return checkResult;
-    }
-    
-    void initializeDevice(String device_id) throws Exception {       
-        dbManager.executeQuery(getNewDeviceQuery(device_id));        
-        ResultSet res = dbManager.selectQuery(getDeviceInfoQuery(device_id));
-        res.next();
-        long savedID = res.getLong("_id");
-        res.close();        
-        for (String tableName : getVersionTables()) {                        
-            dbManager.executeQuery(getNewVersionsTablesQuery(tableName, savedID));
-        }
-    }
-
     public static ArrayList<String> getVersionTables() {
         ArrayList<String> tables = new ArrayList();
         tables.add("PRODUCTS");
@@ -252,17 +215,17 @@ public class RoselServerModel implements ServerTransportListener{
                     + "UPDATE VERSIONS SET version = 0 WHERE device_id = " + String.format("%d", _idOfDevice) + " AND table_name = '" + tableName + "';";
     }
     
-    private ArrayList<String> getUpdates(ClientModel clientModel) throws Exception{        
+    private ArrayList<String> getUpdates(ClientModel clientModel) throws SQLException {        
         ArrayList<String> updates = new ArrayList<String>(0);
         ServerDbItemFactory factory = new ServerDbItemFactory();
         clientModel.setUpdatedTableVersions(getTableVersionsMap());
         HashMap<String,Long> updatedTableVersions = clientModel.getUpdatedTableVersions();
         ResultSet resSet;
-        int updateSize = 0;
+        //int updateSize = 0;
         
         //CLIENTS UPDATES        
         resSet = dbManager.selectQuery(getClientsUpdatesQuery(clientModel));                
-        updateSize = resSet.getFetchSize();
+        //updateSize = resSet.getFetchSize();
         while (resSet.next()) {
             updates.add(factory.fillFromResultSet(resSet, "CLIENTS", 2).toString());
             long lastVersion = (long) updatedTableVersions.get("CLIENTS");
@@ -275,7 +238,7 @@ public class RoselServerModel implements ServerTransportListener{
         
         //PRODUCTS UPDATES
         resSet = dbManager.selectQuery(getProductsUpdatesQuery(clientModel));                
-        updateSize = resSet.getFetchSize();
+        //updateSize = resSet.getFetchSize();
         while (resSet.next()) {
             updates.add(factory.fillFromResultSet(resSet, "PRODUCTS", 2).toString());
             long lastVersion = (long) updatedTableVersions.get("PRODUCTS");
@@ -288,7 +251,7 @@ public class RoselServerModel implements ServerTransportListener{
         
         //ADDRESSES UPDATES        
         resSet = dbManager.selectQuery(getAddressesUpdatesQuery(clientModel));                
-        updateSize = resSet.getFetchSize();
+        //updateSize = resSet.getFetchSize();
         while (resSet.next()) {
             updates.add(factory.fillFromResultSet(resSet, "ADDRESSES", 2).toString());
             long lastVersion = (long) updatedTableVersions.get("ADDRESSES");
@@ -301,7 +264,7 @@ public class RoselServerModel implements ServerTransportListener{
         
         //PRICES UPDATES
         resSet = dbManager.selectQuery(getPricesUpdatesQuery(clientModel));                
-        updateSize = resSet.getFetchSize();
+        //updateSize = resSet.getFetchSize();
         while (resSet.next()) {
             updates.add(factory.fillFromResultSet(resSet, "PRICES", 2).toString());
             long lastVersion = (long) updatedTableVersions.get("PRICES");
@@ -314,7 +277,7 @@ public class RoselServerModel implements ServerTransportListener{
         
         //STOCK UPDATES         
         resSet = dbManager.selectQuery(getStockUpdatesQuery(clientModel));                
-        updateSize = resSet.getFetchSize();
+        //updateSize = resSet.getFetchSize();
         while (resSet.next()) {
             updates.add(factory.fillFromResultSet(resSet, "STOCK", 2).toString());
             long lastVersion = (long) updatedTableVersions.get("STOCK");
@@ -402,23 +365,18 @@ public class RoselServerModel implements ServerTransportListener{
                 + "     INNER JOIN STOCK AS S ON S._id = temp.item_id";                
     }
 
-    private boolean postOrders(ArrayList<String> ordersInJSON, ClientModel clientModel) {
-        if (!postOrdersInJSON(ordersInJSON, clientModel)) {
-            return false;
-        }
+    private void postOrders(ArrayList<String> ordersInJSON, ClientModel clientModel) throws SQLException, ParseException {
+        postOrdersInJSON(ordersInJSON, clientModel);
         if (ordersInJSON.size() > 0) {            
-            try {
+            try {            
                 sendNotificationsForOrders(ordersInJSON, clientModel);
-            } catch (ParseException ex) {
-                LOG.log(Level.SEVERE, null, ex);
-            } catch (AddressException ex) {
+            } catch (MessagingException ex) {
                 LOG.log(Level.SEVERE, null, ex);
             }
-        }
-        return true;
+        }        
     }  
     
-    public boolean postOrdersInJSON(ArrayList<String> ordersInJSON, ClientModel clientModel) {        
+    public void postOrdersInJSON(ArrayList<String> ordersInJSON, ClientModel clientModel) throws SQLException, ParseException {        
         ResultSet rs = null;
         Connection dbConnection = null;
         Statement stmt = null;
@@ -442,12 +400,12 @@ public class RoselServerModel implements ServerTransportListener{
                     orderDate = "null";
                 } else {
                     orderDate = "'" + jsonObject.get("order_date").toString() + "'";
-                };
+                }
                 if (jsonObject.get("shipping_date") == null) {
                     shippingDate = "null";
                 } else {
                     shippingDate = "'" + jsonObject.get("shipping_date").toString() + "'";
-                };
+                }
                 insertQuery = "INSERT INTO ORDERS (device_id, client_id, order_date, shipping_date, sum, comment, address_id) "
                         + "VALUES ("
                         + clientModel.getId() + ", "
@@ -457,14 +415,8 @@ public class RoselServerModel implements ServerTransportListener{
                         + "ROUND(" + jsonObject.get("sum") + ",2), '"
                         + jsonObject.get("comment") + "', "
                         + jsonObject.get("address_id") + ");";
-                pstmt = dbConnection.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS);
-                if (pstmt.executeUpdate() == 0) {
-                    return false;
-                };
-                rs = pstmt.getGeneratedKeys();
-                if (!rs.next()) {
-                    return false;
-                }
+                pstmt = dbConnection.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS);                
+                rs = pstmt.getGeneratedKeys();                
                 order_id = rs.getLong(1);
 
                 lines = (JSONArray) jsonObject.get("lines");
@@ -475,9 +427,8 @@ public class RoselServerModel implements ServerTransportListener{
                     stmt.execute(insertQuery);
                 }
             }            
-        } catch (Exception e) {            
-            LOG.log(Level.SEVERE, "Exception: ", e);
-            return false;
+        } catch (SQLException | ParseException e) {                        
+            throw e;
         } finally {
             if (rs != null) {
                 try {
@@ -497,11 +448,10 @@ public class RoselServerModel implements ServerTransportListener{
                 } catch (SQLException ignore) {
                 }
             }
-        }
-        return true;
+        }        
     }
     
-    public void sendNotificationsForOrders(ArrayList<String> ordersInJSONArrayList, ClientModel clientModel) throws ParseException, AddressException {
+    public void sendNotificationsForOrders(ArrayList<String> ordersInJSONArrayList, ClientModel clientModel) throws ParseException, SQLException, MessagingException {        
         for (String jsonString : ordersInJSONArrayList) {
             JSONParser parser = new JSONParser();
             JSONObject jsonObject = (JSONObject) parser.parse(jsonString);
@@ -516,20 +466,16 @@ public class RoselServerModel implements ServerTransportListener{
         }
     }
     
-    public String getClientNameByID(long clientId) {
+    public String getClientNameByID(long clientId) throws SQLException {
         String clientName = null;
-        try {                        
-            ResultSet result = dbManager.selectQuery("SELECT name FROM CLIENTS WHERE _id = " + clientId);
-            if (result.next()) {
-                clientName = result.getString("name");
-            }             
-        } catch (Exception ex) {
-            LOG.log(Level.SEVERE, "Exception: ", ex);            
+        ResultSet result = dbManager.selectQuery("SELECT name FROM CLIENTS WHERE _id = " + clientId);
+        if (result.next()) {
+            clientName = result.getString("name");
         }
         return clientName;
     }
     
-    public void sendNotification(String msgText) throws AddressException {
+    public void sendNotification(String msgText) throws MessagingException {
         Properties p = getEmailProperties();
         p.put("recipient", "OL@rosel.ru, nikiforov.nikita@rosel.ru");
         p.put("subject", "Новый заказ из мобильного приложения");
@@ -547,37 +493,52 @@ public class RoselServerModel implements ServerTransportListener{
         return emailprops;
     }
     
-    public void sendEmail(Properties p) {
+    public void sendEmail(Properties p) throws MessagingException {
         Session session = Session.getDefaultInstance(p, null);
         MimeMessage msg = new MimeMessage(session);
-        try {
-            msg.setFrom(p.getProperty("from"));
-            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(p.getProperty("recipient")));
-            msg.setSubject(p.getProperty("subject"));
-            msg.setSentDate(new Date());
-            msg.setText(p.getProperty("text"));
-            Transport.send(msg, p.getProperty("login"), p.getProperty("pwd"));
-        } catch (MessagingException ex) {
-            LOG.log(Level.SEVERE, "Exception: ", ex);
-        }
+        msg.setFrom(p.getProperty("from"));
+        msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(p.getProperty("recipient")));
+        msg.setSubject(p.getProperty("subject"));
+        msg.setSentDate(new Date());
+        msg.setText(p.getProperty("text"));
+        Transport.send(msg, p.getProperty("login"), p.getProperty("pwd"));
     }
 
     @Override
-    public ClientModel buildClientModel(TransportMessage request) {
-        //check from who? if check fails - send TYPE "NOT_REGISTERED"                        
+    public synchronized ClientModel buildClientModel(TransportMessage request) throws SQLException {                                
         ClientModel clientModel = null;
-        try {
-            if(!checkDevice(request.getDevice_id(), clientModel)){                
-                return null;
-            }
-        } catch (Exception ex) {             
-            return null;
-        }
+        checkDevice(request.getDevice_id(), clientModel);        
         return clientModel;
     }
+  
+    public void checkDevice(String device_id, ClientModel clientModel) throws SQLException {
+        ResultSet res = dbManager.selectQuery(getDeviceInfoQuery(device_id));
+        if (res.next()) {
+            if (res.getBoolean("confirmed")) {
+                clientModel = new ClientModel();
+                clientModel.setId(res.getLong("_id"));
+                clientModel.setDevice_id(device_id);
+                clientModel.setManager_id(res.getLong("manager_id"));
+                clientModel.setName(res.getString("name"));
+            }
+        } else {
+            initializeDevice(device_id);
+        }
+    }
+
+    void initializeDevice(String device_id) throws SQLException {
+        dbManager.executeQuery(getNewDeviceQuery(device_id));
+        ResultSet res = dbManager.selectQuery(getDeviceInfoQuery(device_id));
+        res.next();
+        long savedID = res.getLong("_id");
+        res.close();
+        for (String tableName : getVersionTables()) {
+            dbManager.executeQuery(getNewVersionsTablesQuery(tableName, savedID));
+        }
+    }
 
     @Override
-    public void commitClientsUpdate(ClientModel clientModel) {
+    public synchronized void commitClientsUpdate(ClientModel clientModel) {
         HashMap updatedTableVersions = clientModel.getUpdatedTableVersions();
         for (Iterator it = updatedTableVersions.entrySet().iterator(); it.hasNext();) {
             Map.Entry entry = (Map.Entry) it.next();
@@ -586,7 +547,7 @@ public class RoselServerModel implements ServerTransportListener{
                 try {                
                     dbManager.executeQuery(updateClientTableVersionsQuery);
                 } catch (Exception ex) {
-                    Logger.getLogger(RoselServerModel.class.getName()).log(Level.SEVERE, null, ex);
+                    LOG.log(Level.SEVERE, null, ex);
                 }
             }
         }        

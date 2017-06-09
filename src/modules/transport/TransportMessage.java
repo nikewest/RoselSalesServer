@@ -8,6 +8,9 @@ import java.util.ArrayList;
  */
 public class TransportMessage {
     
+    //ids
+    public static final String SERVER_ID = "ROSEL.SERVER";
+    
     //intentions TYPES
     public static final String NOT_REG = "ROSEL.NOT_REG"; //device not registered on server
     public static final String UPDATE = "ROSEL.UPDATE"; //updates sending
@@ -15,7 +18,6 @@ public class TransportMessage {
     
     public static final String GET = "ROSEL.GET"; // intention to get updates
     public static final String POST = "ROSEL.POST"; //intention to post orders
-    public static final String UPDATE_COMMIT = "ROSEL.UPDATE_COMMIT"; //commit updates recieve
     
     private String device_id;
     private String intention;

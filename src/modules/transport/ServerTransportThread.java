@@ -19,24 +19,20 @@ public class ServerTransportThread extends Thread {
     
     @Override
     public void run() {
-        try {
-            waitForConnections();
-        } catch (AcceptClientException ex) {
-            transport.handleException(ex);
-        }
+        waitForConnections();
     }
     
-    public void stopTransportThread(){
+    public void stopTransportThread(){        
         this.interrupt();
     }
     
-    public void waitForConnections() throws AcceptClientException{        
-        while(transport.isStarted()){
+    public void waitForConnections() {        
+        while(true){
             try {
-                Socket clientSocket = transport.getServerSocket().accept();
+                Socket clientSocket = transport.acceptClient();
                 new ClientConnectionHandler(clientSocket, transport.getTransportListener()).start();
             } catch (IOException ex) {
-                if(!isInterrupted()) throw new AcceptClientException(ex);
+                transport.handleException(ex);
             }
         }
     }

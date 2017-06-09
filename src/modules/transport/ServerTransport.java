@@ -2,6 +2,7 @@ package modules.transport;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.logging.Logger;
 
 /**
@@ -21,27 +22,29 @@ public class ServerTransport {
         serverSocketPort = 60611;
     }
     
-    public void start() throws StartServerException, AcceptClientException {
-        if(isStarted()){
+    public void start() throws TransportException, AcceptClientException {
+        if (isStarted()) {
             return;
         }
         try {
-            serverSocket = new ServerSocket(getServerSocketPort());            
-            setStarted(true);
-            transportThread = new ServerTransportThread(this);
-            transportThread.start();
-            LOG.info("Server started");            
+            serverSocket = new ServerSocket(serverSocketPort);
         } catch (IOException ex) {
-            throw new StartServerException(ex);            
+            throw new TransportException(ex);
         }
+        setStarted(true);
+        transportThread = new ServerTransportThread(this);
+        transportThread.start();
+        LOG.info("Server started");                  
     }
     
     public void stop() {
         if(!isStarted()){
             return;
         }        
-        transportThread.stopTransportThread();
-        transportThread = null;
+        if(transportThread!=null && transportThread.isAlive()){
+            transportThread.stopTransportThread();
+            transportThread = null;
+        }
         setStarted(false);        
         LOG.info("Server stoped");
         try {
@@ -50,15 +53,12 @@ public class ServerTransport {
     }
     
     public void handleException(Exception ex){
-        getTransportListener().handleTransportException(ex);        
+        transportListener.handleTransportException(ex);        
     }
 
-    /**
-     * @return the serverSocketPort
-     */
-    public int getServerSocketPort() {
-        return serverSocketPort;
-    }
+    public Socket acceptClient() throws IOException{
+        return serverSocket.accept();
+    }        
 
     /**
      * @param serverSocketPort the serverSocketPort to set
@@ -79,13 +79,6 @@ public class ServerTransport {
      */
     public void setStarted(boolean started) {
         this.started = started;
-    }
-
-    /**
-     * @return the serverSocket
-     */
-    public ServerSocket getServerSocket() {
-        return serverSocket;
     }
 
     /**

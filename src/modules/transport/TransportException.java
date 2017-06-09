@@ -4,9 +4,9 @@ package modules.transport;
  *
  * @author nikiforovnikita
  */
-public class StartServerException extends Exception {
+public class TransportException extends Exception {
 
-    public StartServerException(Exception ex) {
+    public TransportException(Exception ex) {
         super("Start server socket failure", ex);
     }
     
