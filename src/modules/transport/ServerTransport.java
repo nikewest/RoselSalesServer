@@ -41,9 +41,8 @@ public class ServerTransport {
         if(!isStarted()){
             return;
         }        
-        if(transportThread!=null && transportThread.isAlive()){
-            transportThread.stopTransportThread();
-            transportThread = null;
+        if(transportThread!=null && transportThread.isAlive()){                                
+            transportThread.stopTransportThread();            
         }
         setStarted(false);        
         LOG.info("Server stoped");

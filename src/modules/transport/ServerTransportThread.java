@@ -27,7 +27,7 @@ public class ServerTransportThread extends Thread {
     }
     
     public void waitForConnections() {        
-        while(true){
+        while(transport.isStarted()){
             try {
                 Socket clientSocket = transport.acceptClient();
                 new ClientConnectionHandler(clientSocket, transport.getTransportListener()).start();

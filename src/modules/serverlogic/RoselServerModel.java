@@ -510,19 +510,36 @@ public class RoselServerModel implements ServerTransportListener{
         checkDevice(request.getDevice_id(), clientModel);        
         return clientModel;
     }
-  
+
     public void checkDevice(String device_id, ClientModel clientModel) throws SQLException {
-        ResultSet res = dbManager.selectQuery(getDeviceInfoQuery(device_id));
-        if (res.next()) {
-            if (res.getBoolean("confirmed")) {
-                clientModel = new ClientModel();
-                clientModel.setId(res.getLong("_id"));
-                clientModel.setDevice_id(device_id);
-                clientModel.setManager_id(res.getLong("manager_id"));
-                clientModel.setName(res.getString("name"));
+//        ResultSet res = dbManager.selectQuery(getDeviceInfoQuery(device_id));
+//        if (res.next()) {
+//            if (res.getBoolean("confirmed")) {
+//                clientModel = new ClientModel();
+//                clientModel.setId(res.getLong("_id"));
+//                clientModel.setDevice_id(device_id);
+//                clientModel.setManager_id(res.getLong("manager_id"));
+//                clientModel.setName(res.getString("name"));
+//            }
+//        } else {
+//            initializeDevice(device_id);
+//        }
+        Connection conn = dbManager.getDbConnection();
+        try (Statement stmt = conn.createStatement(); ResultSet res = stmt.executeQuery(getDeviceInfoQuery(device_id))) {
+            if (res.next()) {
+                if (res.getBoolean("confirmed")) {
+                    clientModel = new ClientModel();
+                    clientModel.setId(res.getLong("_id"));
+                    clientModel.setDevice_id(device_id);
+                    clientModel.setManager_id(res.getLong("manager_id"));
+                    clientModel.setName(res.getString("name"));
+                }
+            } else {
+                initializeDevice(device_id);
             }
-        } else {
-            initializeDevice(device_id);
+        } catch (SQLException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+            throw ex;
         }
     }
 
@@ -552,4 +569,9 @@ public class RoselServerModel implements ServerTransportListener{
             }
         }        
     }    
+
+    @Override
+    public void handleConnectionException(Exception ex) {
+        LOG.log(Level.SEVERE, "Transport Exception:", ex);   
+    }
 }

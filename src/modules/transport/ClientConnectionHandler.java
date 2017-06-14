@@ -3,6 +3,7 @@ package modules.transport;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -34,14 +35,16 @@ public class ClientConnectionHandler extends Thread {
         try {
             writer = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream(), StandardCharsets.UTF_8));
         } catch (IOException ex) {                        
-            server.handleTransportException(ex);
+            //server.handleTransportException(ex);
+            server.handleConnectionException(ex);
             stopHandle();
             return;
         }
         try{
             reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
         } catch (IOException ex) {                        
-            server.handleTransportException(ex);
+            //server.handleTransportException(ex);
+            server.handleConnectionException(ex);
             stopHandle();
             return;
         }        
@@ -50,14 +53,16 @@ public class ClientConnectionHandler extends Thread {
         try {
             request = TransportMessage.fromString(clientsRequest);
         } catch (TransportMessageException ex) {
-            server.handleTransportException(ex);
+            //server.handleTransportException(ex);
+            server.handleConnectionException(ex);
             stopHandle();
             return;
         }
         try {
             clientModel = server.buildClientModel(request);
         } catch (Exception ex) {
-            server.handleTransportException(ex);
+            //server.handleTransportException(ex);
+            server.handleConnectionException(ex);
             stopHandle();
             return;
         }
@@ -65,7 +70,8 @@ public class ClientConnectionHandler extends Thread {
         try {
             response = server.handleClientRequest(request, clientModel);
         } catch (Exception ex) {
-            server.handleTransportException(ex);
+            //server.handleTransportException(ex);
+            server.handleConnectionException(ex);
             stopHandle();
             return;
         }
@@ -87,6 +93,10 @@ public class ClientConnectionHandler extends Thread {
         try {
             reader.close();
         } catch (IOException ignore) {            
+        }
+        try {
+            reader.close();
+        } catch (IOException ignore) {            
         }        
         try {
             clientSocket.close();
@@ -98,8 +108,8 @@ public class ClientConnectionHandler extends Thread {
         String line;
         StringBuilder stringBuilder = new StringBuilder();
         try {
-            while((line = reader.readLine()) != null){
-                stringBuilder.append(line);
+            while((line = reader.readLine())!= null && !line.equals(TransportMessage.END)){
+                stringBuilder.append(line).append('\n');
             }
         } catch (IOException ex) {            
         }
