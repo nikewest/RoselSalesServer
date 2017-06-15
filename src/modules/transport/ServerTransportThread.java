@@ -2,8 +2,6 @@ package modules.transport;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -26,13 +24,14 @@ public class ServerTransportThread extends Thread {
         this.interrupt();
     }
     
-    public void waitForConnections() {        
-        while(transport.isStarted()){
+    public void waitForConnections() {
+        while (transport.isStarted()) {            
             try {
                 Socket clientSocket = transport.acceptClient();
                 new ClientConnectionHandler(clientSocket, transport.getTransportListener()).start();
-            } catch (IOException ex) {
-                transport.handleException(ex);
+            } catch (IOException ex) {                
+                stopTransportThread();                
+                transport.handleException(ex);                                
             }
         }
     }

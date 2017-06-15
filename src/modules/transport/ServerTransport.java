@@ -3,6 +3,7 @@ package modules.transport;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.logging.Logger;
 
 /**
@@ -13,7 +14,7 @@ public class ServerTransport {
     
     private ServerSocket serverSocket;
     private int serverSocketPort;
-    private boolean started = false;
+    private boolean started = false;    
     private ServerTransportThread transportThread;
     private ServerTransportListener transportListener;
     private static final Logger LOG = Logger.getLogger(ServerTransport.class.getName());
@@ -31,7 +32,7 @@ public class ServerTransport {
         } catch (IOException ex) {
             throw new TransportException(ex);
         }
-        setStarted(true);
+        setStarted(true);        
         transportThread = new ServerTransportThread(this);
         transportThread.start();
         LOG.info("Server started");                  
@@ -44,14 +45,17 @@ public class ServerTransport {
         if(transportThread!=null && transportThread.isAlive()){                                
             transportThread.stopTransportThread();            
         }
-        setStarted(false);        
+        setStarted(false);                
         LOG.info("Server stoped");
         try {
-            serverSocket.close();
-        } catch (IOException ignore) {}        
+            serverSocket.close();            
+        } catch (IOException ignore) {}                
     }
     
-    public void handleException(Exception ex){
+    public synchronized void handleException(Exception ex){
+        if(ex instanceof SocketException && !isStarted()){
+            return;
+        }
         transportListener.handleTransportException(ex);        
     }
 
@@ -69,7 +73,7 @@ public class ServerTransport {
     /**
      * @return the started
      */
-    public boolean isStarted() {
+    public synchronized boolean isStarted() {
         return started;
     }
 
