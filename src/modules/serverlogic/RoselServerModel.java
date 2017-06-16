@@ -99,7 +99,7 @@ public class RoselServerModel implements ServerTransportListener{
     public DatabaseManager getDbManager(){
         return dbManager;
     }
-    
+        
     // TRANSPORT
     public void startServer(){
         
@@ -573,4 +573,179 @@ public class RoselServerModel implements ServerTransportListener{
     public void handleConnectionException(Exception ex) {
         LOG.log(Level.SEVERE, "Transport Exception:", ex);   
     }
+    
+    public void initializeDB(){        
+        
+        if(transport.isStarted()){
+            notifyObservers("Can't initialize! Stop server first!");
+            return;
+        }
+        
+        Connection conn;
+        try {
+            conn = dbManager.getDbConnection();
+        } catch (SQLException ex) {
+            LOG.log(Level.SEVERE, null, ex);            
+            notifyObservers("Can't initialize! Database problems.");
+            return;
+        }
+        try (Statement st = conn.createStatement();){
+            
+            // DELETE TABLES
+            st.execute("IF OBJECT_ID('STOCK', 'U') IS NOT NULL DROP TABLE STOCK;");                        
+            st.execute("IF OBJECT_ID('ORDERLINES', 'U') IS NOT NULL DROP TABLE ORDERLINES;");
+            st.execute("IF OBJECT_ID('ORDERS', 'U') IS NOT NULL DROP TABLE ORDERS;");
+            st.execute("IF OBJECT_ID('PRICES', 'U') IS NOT NULL DROP TABLE PRICES;");
+            st.execute("IF OBJECT_ID('ADDRESSES', 'U') IS NOT NULL DROP TABLE ADDRESSES");
+            st.execute("IF OBJECT_ID('CLIENTS', 'U') IS NOT NULL DROP TABLE CLIENTS;");            
+            st.execute("IF OBJECT_ID('PRODUCTS', 'U') IS NOT NULL DROP TABLE PRODUCTS;");
+            st.execute("IF OBJECT_ID('VERSIONS', 'U') IS NOT NULL DROP TABLE VERSIONS;");
+            st.execute("IF OBJECT_ID('DEVICES', 'U') IS NOT NULL DROP TABLE DEVICES;");
+            st.execute("IF OBJECT_ID('MANAGERS', 'U') IS NOT NULL DROP TABLE MANAGERS;");            
+            st.execute("IF OBJECT_ID('UPDATES', 'U') IS NOT NULL DROP TABLE UPDATES");
+            
+            //CREATE TABLES
+            st.execute("CREATE TABLE MANAGERS (\n"
+                    + "  _id       integer NOT NULL PRIMARY KEY IDENTITY(1,1),\n"
+                    + "  rosel_id  nvarchar(100),\n"
+                    + "  /* Keys */\n"
+                    + "  UNIQUE (rosel_id)\n"
+                    + ");");
+            st.execute("CREATE TABLE CLIENTS (\n"
+                    + "  _id        integer PRIMARY KEY IDENTITY(1,1),\n"
+                    + "  rosel_id   nchar(9),\n"
+                    + "  name       text,\n"
+                    + "  address    text,\n"                    
+                    + "  manager_id integer,\n"
+                    + "  /* Keys */\n"
+                    + "  UNIQUE (rosel_id),\n"
+                    + "  /* Foreign keys */\n"
+                    + "  CONSTRAINT CLIENTS_Foreign_key01\n"
+                    + "    FOREIGN KEY (manager_id)\n"
+                    + "    REFERENCES MANAGERS(_id)\n"
+                    + ");");
+            st.execute("CREATE TABLE ADDRESSES (\n"
+                    + "  _id       integer PRIMARY KEY IDENTITY(1,1),\n"
+                    + "  rosel_id  nchar(11),\n"
+                    + "  client_id integer,\n"
+                    + "  address   text,\n"
+                    + "  /* Keys */\n"
+                    + "  UNIQUE (rosel_id),\n"
+                    + "  /* Foreign keys */\n"
+                    + "  CONSTRAINT ADDRESSES_Foreign_key01\n"
+                    + "    FOREIGN KEY (client_id)\n"
+                    + "    REFERENCES CLIENTS(_id), \n"
+                    + ");");            
+            st.execute("CREATE TABLE PRODUCTS (\n"
+                    + "  _id       integer PRIMARY KEY IDENTITY(1,1),\n"
+                    + "  rosel_id  nchar(11),\n"
+                    + "  code      text,\n"
+                    + "  name      text,\n"
+                    + "  isgroup   integer,\n"
+                    + "  group_id  text,\n"
+                    + "  show      integer,\n"
+                    + "  /* Keys */\n"
+                    + "  UNIQUE (rosel_id)\n"
+                    + ");");
+            st.execute("CREATE TABLE DEVICES (\n"
+                    + "  _id         integer PRIMARY KEY IDENTITY(1,1),\n"
+                    + "  device_id   nvarchar(50),\n"
+                    + "  name        text,\n"
+                    + "  manager_id  integer,\n"
+                    + "  /* Keys */\n"
+                    + "  UNIQUE (device_id),\n"
+                    + "  /* Foreign keys */\n"
+                    + "  CONSTRAINT DEVICES_Foreign_key01\n"
+                    + "    FOREIGN KEY (manager_id)\n"
+                    + "    REFERENCES MANAGERS(_id)\n"
+                    + ");");
+            st.execute("CREATE TABLE ORDERS (\n"
+                    + "  _id         integer PRIMARY KEY IDENTITY(1,1),\n"
+                    + "  client_id   integer,\n"
+                    + "  device_id   integer,\n"
+                    + "  rosel_id    nchar(11),\n"
+                    + "  address_id  integer,\n"
+                    + "  order_date  text,\n"
+                    + "  shipping_date  text,\n"
+                    + "  comment  text,\n"
+                    + "  \"sum\"       real,\n"
+                    + "  /* Foreign keys */\n"
+                    + "  CONSTRAINT ORDERS_Foreign_key01\n"
+                    + "    FOREIGN KEY (client_id)\n"
+                    + "    REFERENCES CLIENTS(_id), \n"
+                    + "  CONSTRAINT ORDERS_Foreign_key02\n"
+                    + "    FOREIGN KEY (device_id)\n"
+                    + "    REFERENCES DEVICES(_id),\n"
+                    + "  CONSTRAINT ORDERS_Foreign_key03\n"
+                    + "    FOREIGN KEY (address_id)\n"
+                    + "    REFERENCES ADDRESSES(_id)\n"
+                    + ");");
+            st.execute("CREATE TABLE ORDERLINES (\n"
+                    + "  _id         integer PRIMARY KEY IDENTITY(1,1),\n"
+                    + "  order_id    integer,\n"
+                    + "  product_id  integer,\n"
+                    + "  quantity    integer,\n"
+                    + "  price       real,\n"
+                    + "  \"sum\"       real,\n"
+                    + "  /* Foreign keys */\n"
+                    + "  CONSTRAINT ORDERLINES_Foreign_key01\n"
+                    + "    FOREIGN KEY (product_id)\n"
+                    + "    REFERENCES PRODUCTS(_id), \n"
+                    + "  CONSTRAINT ORDERLINES_Foreign_key02\n"
+                    + "    FOREIGN KEY (order_id)\n"
+                    + "    REFERENCES ORDERS(_id)\n"
+                    + ");");            
+            st.execute("CREATE TABLE PRICES (\n"
+                    + "  _id         integer PRIMARY KEY IDENTITY(1,1),\n"
+                    + "  product_id  integer,\n"
+                    + "  client_id   integer,\n"
+                    + "  price       real,\n"
+                    + "  /* Keys */\n"
+                    + "  UNIQUE (product_id, client_id),\n"
+                    + "  /* Foreign keys */\n"
+                    + "  CONSTRAINT PRICES_Foreign_key02\n"
+                    + "    FOREIGN KEY (product_id)\n"
+                    + "    REFERENCES PRODUCTS(_id), \n"
+                    + "  CONSTRAINT PRICES_Foreign_key01\n"
+                    + "    FOREIGN KEY (client_id)\n"
+                    + "    REFERENCES CLIENTS(_id)\n"
+                    + ");");            
+            st.execute("CREATE TABLE STOCK (\n"
+                    + "  _id         integer PRIMARY KEY IDENTITY(1,1),\n"
+                    + "  product_id  integer,\n"
+                    + "  quantity    real,\n"
+                    + "  /* Keys */\n"
+                    + "  UNIQUE (product_id),\n"
+                    + "  /* Foreign keys */\n"
+                    + "  CONSTRAINT STOCK_Foreign_key01\n"
+                    + "    FOREIGN KEY (product_id)\n"
+                    + "    REFERENCES PRODUCTS(_id)\n"
+                    + ");");
+            st.execute("CREATE TABLE UPDATES (\n"
+                    + "  _id         integer NOT NULL PRIMARY KEY IDENTITY(1,1),\n"
+                    + "  item_id     integer NOT NULL,\n"
+                    + "  table_name  nvarchar(20),\n"
+                    + "  \"action\"    integer,\n"
+                    + "  version     nchar(11),\n"                    
+                    + ");");
+            st.execute("CREATE TABLE VERSIONS (\n"
+                    + "  _id         integer PRIMARY KEY IDENTITY(1,1),\n"
+                    + "  table_name  nvarchar(20),\n"
+                    + "  version     integer,\n"
+                    + "  device_id   integer,\n"
+                    + "  /* Keys */\n"
+                    + "  UNIQUE (table_name, device_id),\n"
+                    + "  /* Foreign keys */\n"
+                    + "  CONSTRAINT VERSIONS_Foreign_key01\n"
+                    + "    FOREIGN KEY (device_id)\n"
+                    + "    REFERENCES DEVICES(_id)\n"
+                    + ");");
+        } catch (SQLException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+            notifyObservers("Can't initialize! Database problems.");            
+            return;
+        }           
+        notifyObservers("Database initialized!");            
+    }
+    
 }

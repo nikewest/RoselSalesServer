@@ -21,7 +21,7 @@ public class RoselServerController {
     }
     
     public void initDB(){
-        
+        roselServerModel.initializeDB();
     }
     
     public void startServer(){
