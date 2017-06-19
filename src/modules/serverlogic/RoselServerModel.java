@@ -127,12 +127,14 @@ public class RoselServerModel implements ServerTransportListener{
         }
     }
     
-    public void stopServer(){
-        if(transport.isStarted()){
-            transport.stop();
+    public void stopServer(){        
+        if(dbManager!=null){
+            dbManager.endWork();
         }
-        dbManager.endWork();
-        notifyStateChanged();
+        if(transport!=null && transport.isStarted()){
+            transport.stop();
+            notifyStateChanged();
+        }        
     }
     
     public void notifyStateChanged(){

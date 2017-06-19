@@ -115,9 +115,9 @@ public class ClientConnectionHandler extends Thread {
     
     public void write(String... stringData){
         for(String curString:stringData){
-            writer.println(curString);
-            writer.flush();
+            writer.println(curString);            
         }
+        writer.flush();
     }
     
 }
