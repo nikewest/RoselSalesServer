@@ -9,6 +9,7 @@ import java.util.logging.Logger;
  *
  * @author nikiforovnikita
  */
+
 public class RoselServerApplication {
     
     private static Logger LOG = Logger.getLogger(RoselServerApplication.class.getName());
@@ -16,7 +17,7 @@ public class RoselServerApplication {
     public static void main(String[] args) {
         initLogger();
         RoselServerApplication app = new RoselServerApplication();        
-        app.startApp();
+        app.startApp();        
     }
     
     void startApp(){
