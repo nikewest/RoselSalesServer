@@ -80,8 +80,7 @@ public class ClientConnectionHandler extends Thread {
     }
     
     public void stopHandle(){
-        freeRes();
-        //this.interrupt();
+        freeRes();        
     }
     
     public void freeRes(){
@@ -90,11 +89,7 @@ public class ClientConnectionHandler extends Thread {
         try {
             reader.close();
         } catch (IOException ignore) {            
-        }
-        try {
-            reader.close();
-        } catch (IOException ignore) {            
-        }        
+        }                
         try {
             clientSocket.close();
         } catch (IOException ignore) {            

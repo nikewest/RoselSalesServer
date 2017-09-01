@@ -33,8 +33,7 @@ public class RoselServerView implements RoselServerModelObserverInterface, Windo
         mainPanel.setServerStateLabel(false);
         server.registerRoselServerModelObserver(this);
         
-        mainFrame.pack();
-        //mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        mainFrame.pack();        
         mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         mainFrame.addWindowListener(this);
         mainFrame.setVisible(true);
