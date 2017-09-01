@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import modules.serverlogic.ClientModel;
+import modules.serverlogic.RoselServerModel;
 
 /**
  *
@@ -19,10 +20,10 @@ public class ClientConnectionHandler extends Thread {
     private final Socket clientSocket;
     private PrintWriter writer;    
     private BufferedReader reader;    
-    private final ServerTransportListener server;
+    private final RoselServerModel server;
     private ClientModel clientModel;
     
-    public ClientConnectionHandler(Socket clientSocket, ServerTransportListener server) {
+    public ClientConnectionHandler(Socket clientSocket, RoselServerModel server) {
         this.clientSocket = clientSocket;  
         this.server = server;
     }

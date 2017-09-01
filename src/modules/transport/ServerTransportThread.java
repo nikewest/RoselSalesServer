@@ -28,7 +28,7 @@ public class ServerTransportThread extends Thread {
         while (transport.isStarted()) {            
             try {
                 Socket clientSocket = transport.acceptClient();
-                new ClientConnectionHandler(clientSocket, transport.getTransportListener()).start();
+                new ClientConnectionHandler(clientSocket, transport.getRoselServer()).start();
             } catch (IOException ex) {                
                 stopTransportThread();                
                 transport.handleException(ex);                                

@@ -5,6 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.logging.Logger;
+import modules.serverlogic.RoselServerModel;
 
 /**
  *
@@ -16,7 +17,8 @@ public class ServerTransport {
     private int serverSocketPort;
     private boolean started = false;    
     private ServerTransportThread transportThread;
-    private ServerTransportListener transportListener;
+    //private ServerTransportListener roselServer;
+    private RoselServerModel roselServer;
     private static final Logger LOG = Logger.getLogger(ServerTransport.class.getName());
     
     public ServerTransport() {
@@ -56,7 +58,7 @@ public class ServerTransport {
         if(ex instanceof SocketException && !isStarted()){
             return;
         }
-        transportListener.handleTransportException(ex);        
+        getRoselServer().handleTransportException(ex);        
     }
 
     public Socket acceptClient() throws IOException{
@@ -84,18 +86,14 @@ public class ServerTransport {
         this.started = started;
     }
 
-    /**
-     * @param transportListener the transportListener to set
-     */
-    public void setTransportListener(ServerTransportListener transportListener) {
-        this.transportListener = transportListener;
+    public RoselServerModel getRoselServer() {
+        return roselServer;
     }
 
-    /**
-     * @return the transportListener
-     */
-    public ServerTransportListener getTransportListener() {
-        return transportListener;
+    public void setRoselServer(RoselServerModel roselServer) {
+        this.roselServer = roselServer;
     }
+
+   
     
 }

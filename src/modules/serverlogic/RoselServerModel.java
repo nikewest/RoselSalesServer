@@ -24,7 +24,6 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import modules.transport.AcceptClientException;
 import modules.transport.ServerTransport;
-import modules.transport.ServerTransportListener;
 import modules.transport.TransportException;
 import modules.transport.TransportMessage;
 import org.json.simple.parser.JSONParser;
@@ -37,7 +36,7 @@ import roselsalesserver.db.DatabaseManager;
  *
  * @author nikiforovnikita
  */
-public class RoselServerModel implements ServerTransportListener{
+public class RoselServerModel {
     
     private Properties serverSettings;    
     private ServerTransport transport;    
@@ -114,7 +113,7 @@ public class RoselServerModel implements ServerTransportListener{
         
         if(transport==null){
             transport = new ServerTransport();
-            transport.setTransportListener(this);
+            transport.setRoselServer(this);
         }        
         try {
             transport.start();            
@@ -156,14 +155,12 @@ public class RoselServerModel implements ServerTransportListener{
     public void unregisterRoselServerModelObserver(RoselServerModelObserverInterface obs){
         observers.remove(obs);
     }
-
-    @Override
+    
     public synchronized void handleTransportException(Exception ex) {        
         LOG.log(Level.SEVERE, "Transport Exception:", ex);
         stopServer();
     }
 
-    @Override
     public synchronized TransportMessage handleClientRequest(TransportMessage request, ClientModel clientModel) throws SQLException, ParseException {
         TransportMessage response = new TransportMessage();
         response.setDevice_id(TransportMessage.SERVER_ID);        
@@ -504,8 +501,7 @@ public class RoselServerModel implements ServerTransportListener{
         msg.setText(p.getProperty("text"));
         Transport.send(msg, p.getProperty("login"), p.getProperty("pwd"));
     }
-
-    @Override
+    
     public synchronized ClientModel buildClientModel(TransportMessage request) throws SQLException {                                
         ClientModel clientModel = null;
         checkDevice(request.getDevice_id(), clientModel);        
@@ -543,7 +539,6 @@ public class RoselServerModel implements ServerTransportListener{
         }
     }
 
-    @Override
     public synchronized void commitClientsUpdate(ClientModel clientModel) {
         HashMap updatedTableVersions = clientModel.getUpdatedTableVersions();
         for (Iterator it = updatedTableVersions.entrySet().iterator(); it.hasNext();) {
@@ -558,8 +553,7 @@ public class RoselServerModel implements ServerTransportListener{
             }
         }        
     }    
-
-    @Override
+    
     public void handleConnectionException(Exception ex) {
         LOG.log(Level.SEVERE, "Transport Exception:", ex);   
     }
