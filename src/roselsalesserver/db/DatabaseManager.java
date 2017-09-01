@@ -47,9 +47,6 @@ public class DatabaseManager {
         if (databaseManagerInstance == null) {
             synchronized (DatabaseManager.class) {
                 if (databaseManagerInstance == null) {
-//                    if (!checkProperties(prop)) {
-//                        throw new SQLException("Wrong properties!");
-//                    }
                     databaseManagerInstance = new DatabaseManager(prop);
                 }
             }
