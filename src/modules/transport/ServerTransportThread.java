@@ -3,10 +3,6 @@ package modules.transport;
 import java.io.IOException;
 import java.net.Socket;
 
-/**
- *
- * @author nikiforovnikita
- */
 public class ServerTransportThread extends Thread {
 
     ServerTransport transport;

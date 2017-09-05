@@ -9,10 +9,6 @@ import modules.serverlogic.RoselServerController;
 import modules.serverlogic.RoselServerModel;
 import modules.serverlogic.RoselServerModelObserverInterface;
 
-/**
- *
- * @author nikiforovnikita
- */
 public class RoselServerView implements RoselServerModelObserverInterface, WindowListener{
     
     private final RoselServerController serverController;

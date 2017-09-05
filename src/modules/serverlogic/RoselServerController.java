@@ -3,10 +3,6 @@ package modules.serverlogic;
 import java.util.Properties;
 import roselsalesserver.UI.RoselServerView;
 
-/**
- *
- * @author nikiforovnikita
- */
 public class RoselServerController {    
     
     RoselServerModel roselServerModel;

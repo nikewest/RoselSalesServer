@@ -5,11 +5,6 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-/**
- *
- * @author nikiforovnikita
- */
-
 public class RoselServerApplication {
     
     private static Logger LOG = Logger.getLogger(RoselServerApplication.class.getName());

@@ -10,11 +10,6 @@ import java.nio.charset.StandardCharsets;
 import modules.serverlogic.ClientModel;
 import modules.serverlogic.RoselServerModel;
 
-/**
- *
- * @author nikiforovnikita
- */
-
 public class ClientConnectionHandler extends Thread {
 
     private final Socket clientSocket;

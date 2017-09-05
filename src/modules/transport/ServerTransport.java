@@ -7,17 +7,12 @@ import java.net.SocketException;
 import java.util.logging.Logger;
 import modules.serverlogic.RoselServerModel;
 
-/**
- *
- * @author nikiforovnikita
- */
 public class ServerTransport {
     
     private ServerSocket serverSocket;
     private int serverSocketPort;
     private boolean started = false;    
-    private ServerTransportThread transportThread;
-    //private ServerTransportListener roselServer;
+    private ServerTransportThread transportThread;    
     private RoselServerModel roselServer;
     private static final Logger LOG = Logger.getLogger(ServerTransport.class.getName());
     
@@ -65,23 +60,14 @@ public class ServerTransport {
         return serverSocket.accept();
     }        
 
-    /**
-     * @param serverSocketPort the serverSocketPort to set
-     */
     public void setServerSocketPort(int serverSocketPort) {
         this.serverSocketPort = serverSocketPort;
     }
 
-    /**
-     * @return the started
-     */
     public synchronized boolean isStarted() {
         return started;
     }
 
-    /**
-     * @param started the started to set
-     */
     public void setStarted(boolean started) {
         this.started = started;
     }

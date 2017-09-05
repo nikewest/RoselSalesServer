@@ -1,9 +1,5 @@
 package modules.transport;
 
-/**
- *
- * @author nikiforovnikita
- */
 public class AcceptClientException extends Exception {
     
     public AcceptClientException(Exception ex) {

@@ -3,10 +3,6 @@ package modules.transport;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/**
- *
- * @author nikiforovnikita
- */
 public class TransportMessage implements Serializable{
     
     public static final String END = "@";

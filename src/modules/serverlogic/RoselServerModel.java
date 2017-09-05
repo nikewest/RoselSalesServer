@@ -32,11 +32,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.parser.ParseException;
 import roselsalesserver.db.DatabaseManager;
 
-/**
- *
- * @author nikiforovnikita
- */
-
 public class RoselServerModel {
     
     private Properties serverSettings;    
@@ -285,7 +280,8 @@ public class RoselServerModel {
             }            
             updatedTableVersions.put("STOCK", lastVersion);
         }
-        resSet.close();        
+        resSet.close();
+        resSet.getStatement().close();
         return updates;
     }
     

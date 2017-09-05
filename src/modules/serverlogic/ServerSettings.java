@@ -5,10 +5,6 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.Set;
 
-/**
- *
- * @author nikiforovnikita
- */
 public final class ServerSettings {
     
     public static final String DB_TYPE = "db_type";

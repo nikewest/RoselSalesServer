@@ -10,10 +10,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import modules.serverlogic.ServerSettings;
 
-/**
- *
- * @author nikiforovnikita
- */
 public class DatabaseManager {
 
     private static final Logger LOG = Logger.getLogger(DatabaseManager.class.getName());
@@ -107,8 +103,7 @@ public class DatabaseManager {
             }
         }
     }
-
-    // probably not needed
+    
     public ResultSet selectQuery(String queryString) throws SQLException {
         try (Statement stmt = getDbConnection().createStatement()) {
             return stmt.executeQuery(queryString);
