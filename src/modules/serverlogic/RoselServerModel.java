@@ -36,6 +36,7 @@ import roselsalesserver.db.DatabaseManager;
  *
  * @author nikiforovnikita
  */
+
 public class RoselServerModel {
     
     private Properties serverSettings;    
