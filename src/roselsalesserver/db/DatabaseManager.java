@@ -40,7 +40,7 @@ public class DatabaseManager {
     }
 
     public static DatabaseManager getDatabaseManager(Properties prop) throws ClassNotFoundException {
-        if (databaseManagerInstance == null) {
+        if (databaseManagerInstance == null) {            
             synchronized (DatabaseManager.class) {
                 if (databaseManagerInstance == null) {
                     databaseManagerInstance = new DatabaseManager(prop);
