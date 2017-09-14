@@ -22,14 +22,14 @@ public class DatabaseManager {
     private String dbUrl;
     private String dbLogin;
     private String dbPwd;
-    private boolean driverInitialized = false;
+//    private boolean driverInitialized = false;
     private Connection dbConnection = null;
 
     private volatile static DatabaseManager databaseManagerInstance = null;
 
     private DatabaseManager(Properties prop) throws ClassNotFoundException {
         setConnectionProperties(prop);
-        initDriver();
+//        initDriver();
     }
 
     public Connection getDbConnection() throws SQLException {
@@ -73,24 +73,24 @@ public class DatabaseManager {
         return prop.containsKey(ServerSettings.DB_SERVER) && prop.containsKey(ServerSettings.DB_NAME) && prop.containsKey(ServerSettings.DB_NAME) && prop.containsKey(ServerSettings.DB_TYPE) && prop.containsKey(ServerSettings.DB_LOGIN) && prop.containsKey(ServerSettings.DB_PASSWORD);
     }
 
-    private void initDriver() throws ClassNotFoundException {
-        try {
-            Class.forName(driverName);
-        } catch (ClassNotFoundException ex) {
-            LOG.log(Level.SEVERE, null, ex);
-            driverInitialized = false;
-            throw ex;
-        }
-        driverInitialized = true;
-    }
+//    private void initDriver() throws ClassNotFoundException {
+//        try {
+//            Class.forName(driverName);
+//        } catch (ClassNotFoundException ex) {
+//            LOG.log(Level.SEVERE, null, ex);
+//            driverInitialized = false;
+//            throw ex;
+//        }
+//        driverInitialized = true;
+//    }
 
     public void initConnection() throws SQLException {
-        if (!driverInitialized) {
-            try {
-                initDriver();
-            } catch (ClassNotFoundException ignore) {
-            }
-        }
+//        if (!driverInitialized) {
+//            try {
+//                initDriver();
+//            } catch (ClassNotFoundException ignore) {
+//            }
+//        }
         dbConnection = DriverManager.getConnection(dbUrl, dbLogin, dbPwd);
     }
 
