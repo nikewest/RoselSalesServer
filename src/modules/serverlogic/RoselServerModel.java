@@ -209,80 +209,94 @@ public class RoselServerModel {
                     + "UPDATE VERSIONS SET version = 0 WHERE device_id = " + String.format("%d", _idOfDevice) + " AND table_name = '" + tableName + "';";
     }
     
-    private ArrayList<String> getUpdates(ClientModel clientModel) throws SQLException {        
+    private ArrayList<String> getUpdates(ClientModel clientModel) throws SQLException {
         ArrayList<String> updates = new ArrayList<String>(0);
         ServerDbItemFactory factory = new ServerDbItemFactory();
         clientModel.setUpdatedTableVersions(getTableVersionsMap());
-        HashMap<String,Long> updatedTableVersions = clientModel.getUpdatedTableVersions();
-        ResultSet resSet;
+        HashMap<String, Long> updatedTableVersions = clientModel.getUpdatedTableVersions();
+
         //int updateSize = 0;
-        
-        //CLIENTS UPDATES        
-        resSet = dbManager.selectQuery(getClientsUpdatesQuery(clientModel));                
-        //updateSize = resSet.getFetchSize();
-        while (resSet.next()) {
-            updates.add(factory.fillFromResultSet(resSet, "CLIENTS", 2).toString());
-            long lastVersion = (long) updatedTableVersions.get("CLIENTS");
-            if (lastVersion < resSet.getLong("version")) {
-                lastVersion = resSet.getLong("version");                
-            }            
-            updatedTableVersions.put("CLIENTS", lastVersion);
+        ResultSet resSet = null;
+
+        try (Statement stmt = dbManager.getDbConnection().createStatement()) {
+
+            //CLIENTS UPDATES                
+            //updateSize = resSet.getFetchSize();
+            resSet = stmt.executeQuery(getClientsUpdatesQuery(clientModel));
+            while (resSet.next()) {
+                updates.add(factory.fillFromResultSet(resSet, "CLIENTS", 2).toString());
+                long lastVersion = (long) updatedTableVersions.get("CLIENTS");
+                if (lastVersion < resSet.getLong("version")) {
+                    lastVersion = resSet.getLong("version");
+                }
+                updatedTableVersions.put("CLIENTS", lastVersion);
+            }
+            resSet.close();
+
+            //PRODUCTS UPDATES
+            resSet = stmt.executeQuery(getProductsUpdatesQuery(clientModel));
+
+            //updateSize = resSet.getFetchSize();
+            while (resSet.next()) {
+                updates.add(factory.fillFromResultSet(resSet, "PRODUCTS", 2).toString());
+                long lastVersion = (long) updatedTableVersions.get("PRODUCTS");
+                if (lastVersion < resSet.getLong("version")) {
+                    lastVersion = resSet.getLong("version");
+                }
+                updatedTableVersions.put("PRODUCTS", lastVersion);
+            }
+
+            resSet.close();
+
+            //ADDRESSES UPDATES        
+            resSet = stmt.executeQuery(getAddressesUpdatesQuery(clientModel));
+            //updateSize = resSet.getFetchSize();
+
+            while (resSet.next()) {
+                updates.add(factory.fillFromResultSet(resSet, "ADDRESSES", 2).toString());
+                long lastVersion = (long) updatedTableVersions.get("ADDRESSES");
+                if (lastVersion < resSet.getLong("version")) {
+                    lastVersion = resSet.getLong("version");
+                }
+                updatedTableVersions.put("ADDRESSES", lastVersion);
+            }
+
+            resSet.close();
+
+            //PRICES UPDATES
+            resSet = stmt.executeQuery(getPricesUpdatesQuery(clientModel));
+            //updateSize = resSet.getFetchSize();
+
+            while (resSet.next()) {
+                updates.add(factory.fillFromResultSet(resSet, "PRICES", 2).toString());
+                long lastVersion = (long) updatedTableVersions.get("PRICES");
+                if (lastVersion < resSet.getLong("version")) {
+                    lastVersion = resSet.getLong("version");
+                }
+                updatedTableVersions.put("PRICES", lastVersion);
+            }
+
+            resSet.close();
+
+            //STOCK UPDATES         
+            resSet = stmt.executeQuery(getStockUpdatesQuery(clientModel));
+            //updateSize = resSet.getFetchSize();
+
+            while (resSet.next()) {
+                updates.add(factory.fillFromResultSet(resSet, "STOCK", 2).toString());
+                long lastVersion = (long) updatedTableVersions.get("STOCK");
+                if (lastVersion < resSet.getLong("version")) {
+                    lastVersion = resSet.getLong("version");
+                }
+                updatedTableVersions.put("STOCK", lastVersion);
+            }
+
+            resSet.close();
+
+            return updates;
+        } catch (SQLException ex){
+            throw ex;
         }
-        resSet.close();
-        
-        //PRODUCTS UPDATES
-        resSet = dbManager.selectQuery(getProductsUpdatesQuery(clientModel));                
-        //updateSize = resSet.getFetchSize();
-        while (resSet.next()) {
-            updates.add(factory.fillFromResultSet(resSet, "PRODUCTS", 2).toString());
-            long lastVersion = (long) updatedTableVersions.get("PRODUCTS");
-            if (lastVersion < resSet.getLong("version")) {
-                lastVersion = resSet.getLong("version");                
-            }            
-            updatedTableVersions.put("PRODUCTS", lastVersion);
-        }
-        resSet.close();
-        
-        //ADDRESSES UPDATES        
-        resSet = dbManager.selectQuery(getAddressesUpdatesQuery(clientModel));                
-        //updateSize = resSet.getFetchSize();
-        while (resSet.next()) {
-            updates.add(factory.fillFromResultSet(resSet, "ADDRESSES", 2).toString());
-            long lastVersion = (long) updatedTableVersions.get("ADDRESSES");
-            if (lastVersion < resSet.getLong("version")) {
-                lastVersion = resSet.getLong("version");                
-            }            
-            updatedTableVersions.put("ADDRESSES", lastVersion);
-        }
-        resSet.close();
-        
-        //PRICES UPDATES
-        resSet = dbManager.selectQuery(getPricesUpdatesQuery(clientModel));                
-        //updateSize = resSet.getFetchSize();
-        while (resSet.next()) {
-            updates.add(factory.fillFromResultSet(resSet, "PRICES", 2).toString());
-            long lastVersion = (long) updatedTableVersions.get("PRICES");
-            if (lastVersion < resSet.getLong("version")) {
-                lastVersion = resSet.getLong("version");                
-            }            
-            updatedTableVersions.put("PRICES", lastVersion);
-        }
-        resSet.close();
-        
-        //STOCK UPDATES         
-        resSet = dbManager.selectQuery(getStockUpdatesQuery(clientModel));                
-        //updateSize = resSet.getFetchSize();
-        while (resSet.next()) {
-            updates.add(factory.fillFromResultSet(resSet, "STOCK", 2).toString());
-            long lastVersion = (long) updatedTableVersions.get("STOCK");
-            if (lastVersion < resSet.getLong("version")) {
-                lastVersion = resSet.getLong("version");                
-            }            
-            updatedTableVersions.put("STOCK", lastVersion);
-        }
-        resSet.close();
-        resSet.getStatement().close();
-        return updates;
     }
     
     private static HashMap<String, Long> getTableVersionsMap(){
@@ -463,9 +477,12 @@ public class RoselServerModel {
     
     public String getClientNameByID(long clientId) throws SQLException {
         String clientName = null;
-        ResultSet result = dbManager.selectQuery("SELECT name FROM CLIENTS WHERE _id = " + clientId);
-        if (result.next()) {
-            clientName = result.getString("name");
+        try (Statement stmt = dbManager.getDbConnection().createStatement(); ResultSet result = stmt.executeQuery("SELECT name FROM CLIENTS WHERE _id = " + clientId)) {
+            if (result.next()) {
+                clientName = result.getString("name");
+            }
+        } catch(SQLException ex){
+            throw ex;
         }
         return clientName;
     }
@@ -527,10 +544,11 @@ public class RoselServerModel {
 
     void initializeDevice(String device_id) throws SQLException {
         dbManager.executeQuery(getNewDeviceQuery(device_id));
-        ResultSet res = dbManager.selectQuery(getDeviceInfoQuery(device_id));
-        res.next();
-        long savedID = res.getLong("_id");
-        res.close();
+        long savedID;
+        try (Statement stmt = dbManager.getDbConnection().createStatement(); ResultSet res = stmt.executeQuery(getDeviceInfoQuery(device_id))) {
+            res.next();
+            savedID = res.getLong("_id");
+        }
         for (String tableName : getVersionTables()) {
             dbManager.executeQuery(getNewVersionsTablesQuery(tableName, savedID));
         }
@@ -541,7 +559,7 @@ public class RoselServerModel {
         for (Iterator it = updatedTableVersions.entrySet().iterator(); it.hasNext();) {
             Map.Entry entry = (Map.Entry) it.next();
             if ((Long) entry.getValue() > 0) {
-                String updateClientTableVersionsQuery = "UPDATE VERSIONS SET version = " + String.format("%d", entry.getValue()) + " WHERE table_name = '" + (String) entry.getKey() + "' and device_id = " + clientModel.getId();
+                String updateClientTableVersionsQuery = "UPDATE VERSIONS SET version = " + String.format("%d", entry.getValue()) + " WHERE table_name = '" + (String) entry.getKey() + "' and device_id = '" + clientModel.getId() + "'";
                 try {                
                     dbManager.executeQuery(updateClientTableVersionsQuery);
                 } catch (Exception ex) {

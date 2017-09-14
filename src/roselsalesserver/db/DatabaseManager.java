@@ -104,14 +104,14 @@ public class DatabaseManager {
         }
     }
     
-    public ResultSet selectQuery(String queryString) throws SQLException {
-        try (Statement stmt = getDbConnection().createStatement()) {
-            return stmt.executeQuery(queryString);
-        } catch (SQLException ex) {
-            LOG.log(Level.SEVERE, null, ex);
-            throw ex;
-        }
-    }
+//    public ResultSet selectQuery(String queryString) throws SQLException {
+//        try (Statement stmt = getDbConnection().createStatement()) {
+//            return stmt.executeQuery(queryString);
+//        } catch (SQLException ex) {
+//            LOG.log(Level.SEVERE, null, ex);
+//            throw ex;
+//        }
+//    }
 
     public void executeQuery(String queryString) throws SQLException {
         try (Statement stmt = getDbConnection().createStatement()) {
