@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -117,8 +116,7 @@ public class RoselServerModel {
         } catch (TransportException | AcceptClientException ex) {
             LOG.log(Level.SEVERE, null, ex);
             notifyObservers("Can't start server!");
-            stopServer();
-            return;
+            stopServer();            
         }
     }
     
@@ -187,8 +185,7 @@ public class RoselServerModel {
         ArrayList<String> tables = new ArrayList();
         tables.add("PRODUCTS");
         tables.add("CLIENTS");
-        tables.add("PRICES");
-        //tables.add("STOCK");
+        tables.add("PRICES");        
         tables.add("ADDRESSES");
         return tables;
     }
@@ -214,14 +211,12 @@ public class RoselServerModel {
         ServerDbItemFactory factory = new ServerDbItemFactory();
         clientModel.setUpdatedTableVersions(getTableVersionsMap());
         HashMap<String, Long> updatedTableVersions = clientModel.getUpdatedTableVersions();
-
-        //int updateSize = 0;
+        
         ResultSet resSet = null;
 
         try (Statement stmt = dbManager.getDbConnection().createStatement()) {
 
-            //CLIENTS UPDATES                
-            //updateSize = resSet.getFetchSize();
+            //CLIENTS UPDATES                            
             resSet = stmt.executeQuery(getClientsUpdatesQuery(clientModel));
             while (resSet.next()) {
                 updates.add(factory.fillFromResultSet(resSet, "CLIENTS", 2).toString());
@@ -235,8 +230,6 @@ public class RoselServerModel {
 
             //PRODUCTS UPDATES
             resSet = stmt.executeQuery(getProductsUpdatesQuery(clientModel));
-
-            //updateSize = resSet.getFetchSize();
             while (resSet.next()) {
                 updates.add(factory.fillFromResultSet(resSet, "PRODUCTS", 2).toString());
                 long lastVersion = (long) updatedTableVersions.get("PRODUCTS");
@@ -250,8 +243,6 @@ public class RoselServerModel {
 
             //ADDRESSES UPDATES        
             resSet = stmt.executeQuery(getAddressesUpdatesQuery(clientModel));
-            //updateSize = resSet.getFetchSize();
-
             while (resSet.next()) {
                 updates.add(factory.fillFromResultSet(resSet, "ADDRESSES", 2).toString());
                 long lastVersion = (long) updatedTableVersions.get("ADDRESSES");
@@ -265,8 +256,7 @@ public class RoselServerModel {
 
             //PRICES UPDATES
             resSet = stmt.executeQuery(getPricesUpdatesQuery(clientModel));
-            //updateSize = resSet.getFetchSize();
-
+            
             while (resSet.next()) {
                 updates.add(factory.fillFromResultSet(resSet, "PRICES", 2).toString());
                 long lastVersion = (long) updatedTableVersions.get("PRICES");
@@ -280,15 +270,8 @@ public class RoselServerModel {
 
             //STOCK UPDATES         
             resSet = stmt.executeQuery(getStockUpdatesQuery(clientModel));
-            //updateSize = resSet.getFetchSize();
-
             while (resSet.next()) {
                 updates.add(factory.fillFromResultSet(resSet, "STOCK", 0).toString());
-//                long lastVersion = (long) updatedTableVersions.get("STOCK");
-//                if (lastVersion < resSet.getLong("version")) {
-//                    lastVersion = resSet.getLong("version");
-//                }
-//                updatedTableVersions.put("STOCK", lastVersion);
             }
 
             resSet.close();
@@ -362,17 +345,7 @@ public class RoselServerModel {
                 + "       INNER JOIN CLIENTS AS C ON P.client_id = C._id AND C.manager_id = " + clientModel.getManager_id();
     }
     
-    private String getStockUpdatesQuery(ClientModel clientModel){
-//        return "SELECT temp.version, temp.action, S.* FROM "
-//                + "(SELECT "
-//                + "	U.item_id,"
-//                + "	MAX(U._id) AS version,"
-//                + "	MIN(U.action) AS action,"
-//                + "	V.device_id "
-//                + "FROM VERSIONS AS V"
-//                + "	INNER JOIN UPDATES AS U ON (V.version < U._id) AND V.table_name = 'STOCK' AND V.device_id = " + clientModel.getId() + " AND U.table_name = 'STOCK' "
-//                + "GROUP BY U.item_id, V.device_id) AS temp "
-//                + "     INNER JOIN STOCK AS S ON S._id = temp.item_id";                
+    private String getStockUpdatesQuery(ClientModel clientModel){                
         return "SELECT 1 as action, _id, product_id, quantity FROM STOCK";
     }
 
@@ -390,8 +363,7 @@ public class RoselServerModel {
     public void postOrdersInJSON(ArrayList<String> ordersInJSON, ClientModel clientModel) throws SQLException, ParseException {        
         ResultSet rs = null;
         Connection dbConnection = null;
-        Statement stmt = null;
-        //PreparedStatement pstmt = null;
+        Statement stmt = null;        
         String orderDate;
         String shippingDate;
         long order_id;
@@ -426,7 +398,6 @@ public class RoselServerModel {
                         + "ROUND(" + jsonObject.get("sum") + ",2), '"
                         + jsonObject.get("comment") + "', "
                         + jsonObject.get("address_id") + ");";
-                //pstmt = dbConnection.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS);             
                 stmt.executeUpdate(insertQuery, Statement.RETURN_GENERATED_KEYS);
                 rs = stmt.getGeneratedKeys();
                 rs.next();
@@ -455,12 +426,6 @@ public class RoselServerModel {
                 } catch (SQLException ex) {
                 }
             }
-//            if (pstmt != null) {
-//                try {
-//                    pstmt.close();
-//                } catch (SQLException ignore) {
-//                }
-//            }
         }        
     }
     

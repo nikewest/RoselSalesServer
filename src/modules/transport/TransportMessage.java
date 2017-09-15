@@ -49,44 +49,26 @@ public class TransportMessage implements Serializable{
         return str.toString();
     }    
     
-    /**
-     * @return the device_id
-     */
     public String getDevice_id() {
         return device_id;
     }
 
-    /**
-     * @param device_id the device_id to set
-     */
     public void setDevice_id(String device_id) {
         this.device_id = device_id;
     }
 
-    /**
-     * @return the intention
-     */
     public String getIntention() {
         return intention;
     }
 
-    /**
-     * @param intention the intention to set
-     */
     public void setIntention(String intention) {
         this.intention = intention;
     }
 
-    /**
-     * @return the body
-     */
     public ArrayList<String> getBody() {
         return body;
     }
 
-    /**
-     * @param body the body to set
-     */
     public void setBody(ArrayList<String> body) {
         this.body = body;
     }

@@ -27,16 +27,14 @@ public class ClientConnectionHandler extends Thread {
     public void run() {        
         try {
             writer = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream(), StandardCharsets.UTF_8));
-        } catch (IOException ex) {                        
-            //server.handleTransportException(ex);
+        } catch (IOException ex) {                                    
             server.handleConnectionException(ex);
             stopHandle();
             return;
         }
         try{
             reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
-        } catch (IOException ex) {                        
-            //server.handleTransportException(ex);
+        } catch (IOException ex) {                                    
             server.handleConnectionException(ex);
             stopHandle();
             return;
@@ -45,16 +43,14 @@ public class ClientConnectionHandler extends Thread {
         TransportMessage request;
         try {
             request = TransportMessage.fromString(clientsRequest);
-        } catch (TransportMessageException ex) {
-            //server.handleTransportException(ex);
+        } catch (TransportMessageException ex) {            
             server.handleConnectionException(ex);
             stopHandle();
             return;
         }
         try {
             clientModel = server.buildClientModel(request);
-        } catch (Exception ex) {
-            //server.handleTransportException(ex);
+        } catch (Exception ex) {            
             server.handleConnectionException(ex);
             stopHandle();
             return;
@@ -62,8 +58,7 @@ public class ClientConnectionHandler extends Thread {
         TransportMessage response;
         try {
             response = server.handleClientRequest(request, clientModel);
-        } catch (Exception ex) {
-            //server.handleTransportException(ex);
+        } catch (Exception ex) {            
             server.handleConnectionException(ex);
             stopHandle();
             return;
