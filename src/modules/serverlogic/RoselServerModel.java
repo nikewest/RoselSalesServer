@@ -188,7 +188,7 @@ public class RoselServerModel {
         tables.add("PRODUCTS");
         tables.add("CLIENTS");
         tables.add("PRICES");
-        tables.add("STOCK");
+        //tables.add("STOCK");
         tables.add("ADDRESSES");
         return tables;
     }
@@ -283,26 +283,27 @@ public class RoselServerModel {
             //updateSize = resSet.getFetchSize();
 
             while (resSet.next()) {
-                updates.add(factory.fillFromResultSet(resSet, "STOCK", 2).toString());
-                long lastVersion = (long) updatedTableVersions.get("STOCK");
-                if (lastVersion < resSet.getLong("version")) {
-                    lastVersion = resSet.getLong("version");
-                }
-                updatedTableVersions.put("STOCK", lastVersion);
+                updates.add(factory.fillFromResultSet(resSet, "STOCK", 0).toString());
+//                long lastVersion = (long) updatedTableVersions.get("STOCK");
+//                if (lastVersion < resSet.getLong("version")) {
+//                    lastVersion = resSet.getLong("version");
+//                }
+//                updatedTableVersions.put("STOCK", lastVersion);
             }
 
             resSet.close();
 
             return updates;
         } catch (SQLException ex){
+            LOG.log(Level.SEVERE, null, ex);
             throw ex;
         }
     }
     
     private static HashMap<String, Long> getTableVersionsMap(){
-        HashMap updatedTableVersions = new HashMap<String, Long>(getVersionTables().size());
+        HashMap<String, Long> updatedTableVersions = new HashMap<String, Long>(getVersionTables().size());
         for (String tableName : getVersionTables()) {
-            updatedTableVersions.put(tableName, 0);
+            updatedTableVersions.put(tableName, new Long(0));
         }
         return updatedTableVersions;
     }
@@ -362,16 +363,17 @@ public class RoselServerModel {
     }
     
     private String getStockUpdatesQuery(ClientModel clientModel){
-        return "SELECT temp.version, temp.action, S.* FROM "
-                + "(SELECT "
-                + "	U.item_id,"
-                + "	MAX(U._id) AS version,"
-                + "	MIN(U.action) AS action,"
-                + "	V.device_id "
-                + "FROM VERSIONS AS V"
-                + "	INNER JOIN UPDATES AS U ON (V.version < U._id) AND V.table_name = 'STOCK' AND V.device_id = " + clientModel.getId() + " AND U.table_name = 'STOCK' "
-                + "GROUP BY U.item_id, V.device_id) AS temp "
-                + "     INNER JOIN STOCK AS S ON S._id = temp.item_id";                
+//        return "SELECT temp.version, temp.action, S.* FROM "
+//                + "(SELECT "
+//                + "	U.item_id,"
+//                + "	MAX(U._id) AS version,"
+//                + "	MIN(U.action) AS action,"
+//                + "	V.device_id "
+//                + "FROM VERSIONS AS V"
+//                + "	INNER JOIN UPDATES AS U ON (V.version < U._id) AND V.table_name = 'STOCK' AND V.device_id = " + clientModel.getId() + " AND U.table_name = 'STOCK' "
+//                + "GROUP BY U.item_id, V.device_id) AS temp "
+//                + "     INNER JOIN STOCK AS S ON S._id = temp.item_id";                
+        return "SELECT 1 as action, _id, product_id, quantity FROM STOCK";
     }
 
     private void postOrders(ArrayList<String> ordersInJSON, ClientModel clientModel) throws SQLException, ParseException {
@@ -389,7 +391,7 @@ public class RoselServerModel {
         ResultSet rs = null;
         Connection dbConnection = null;
         Statement stmt = null;
-        PreparedStatement pstmt = null;
+        //PreparedStatement pstmt = null;
         String orderDate;
         String shippingDate;
         long order_id;
@@ -424,8 +426,10 @@ public class RoselServerModel {
                         + "ROUND(" + jsonObject.get("sum") + ",2), '"
                         + jsonObject.get("comment") + "', "
                         + jsonObject.get("address_id") + ");";
-                pstmt = dbConnection.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS);                
-                rs = pstmt.getGeneratedKeys();                
+                //pstmt = dbConnection.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS);             
+                stmt.executeUpdate(insertQuery, Statement.RETURN_GENERATED_KEYS);
+                rs = stmt.getGeneratedKeys();
+                rs.next();
                 order_id = rs.getLong(1);
 
                 lines = (JSONArray) jsonObject.get("lines");
@@ -451,12 +455,12 @@ public class RoselServerModel {
                 } catch (SQLException ex) {
                 }
             }
-            if (pstmt != null) {
-                try {
-                    pstmt.close();
-                } catch (SQLException ignore) {
-                }
-            }
+//            if (pstmt != null) {
+//                try {
+//                    pstmt.close();
+//                } catch (SQLException ignore) {
+//                }
+//            }
         }        
     }
     
@@ -482,6 +486,7 @@ public class RoselServerModel {
                 clientName = result.getString("name");
             }
         } catch(SQLException ex){
+            LOG.log(Level.SEVERE, null, ex);
             throw ex;
         }
         return clientName;
@@ -518,11 +523,12 @@ public class RoselServerModel {
     
     public synchronized ClientModel buildClientModel(TransportMessage request) throws SQLException {                                
         ClientModel clientModel = null;
-        checkDevice(request.getDevice_id(), clientModel);        
+        clientModel = checkDevice(request.getDevice_id());        
         return clientModel;
     }
 
-    public void checkDevice(String device_id, ClientModel clientModel) throws SQLException {
+    public ClientModel checkDevice(String device_id) throws SQLException {
+        ClientModel clientModel = null;
         Connection conn = dbManager.getDbConnection();
         try (Statement stmt = conn.createStatement(); ResultSet res = stmt.executeQuery(getDeviceInfoQuery(device_id))) {
             if (res.next()) {
@@ -540,6 +546,7 @@ public class RoselServerModel {
             LOG.log(Level.SEVERE, null, ex);
             throw ex;
         }
+        return clientModel;
     }
 
     void initializeDevice(String device_id) throws SQLException {
@@ -548,6 +555,9 @@ public class RoselServerModel {
         try (Statement stmt = dbManager.getDbConnection().createStatement(); ResultSet res = stmt.executeQuery(getDeviceInfoQuery(device_id))) {
             res.next();
             savedID = res.getLong("_id");
+        } catch(SQLException ex){
+            LOG.log(Level.SEVERE, null, ex);
+            throw ex;
         }
         for (String tableName : getVersionTables()) {
             dbManager.executeQuery(getNewVersionsTablesQuery(tableName, savedID));

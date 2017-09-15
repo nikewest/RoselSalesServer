@@ -20,7 +20,7 @@ public class ClientConnectionHandler extends Thread {
     
     public ClientConnectionHandler(Socket clientSocket, RoselServerModel server) {
         this.clientSocket = clientSocket;  
-        this.server = server;
+        this.server = server;        
     }
     
     @Override

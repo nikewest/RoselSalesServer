@@ -20,7 +20,7 @@ public class TransportMessage implements Serializable{
     
     private String device_id;
     private String intention;
-    private ArrayList<String> body;    
+    private ArrayList<String> body = new ArrayList<>();    
     
     public static TransportMessage fromString(String msg) throws TransportMessageException{
         TransportMessage transportMsg = new TransportMessage();
