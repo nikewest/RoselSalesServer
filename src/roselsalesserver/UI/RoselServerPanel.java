@@ -5,42 +5,45 @@
  */
 package roselsalesserver.UI;
 
+import java.awt.Color;
 import java.util.Properties;
-import roselsalesserver.RoselSalesServer;
-import roselsalesserver.ServerSettings;
+import modules.serverlogic.ServerSettings;
+
 
 /**
  *
  * @author nikiforovnikita
  */
-public class ServerPanel extends javax.swing.JPanel {
+public class RoselServerPanel extends javax.swing.JPanel {
 
-    RoselSalesServer roselSalesServer;           
+    private final RoselServerView view;   
     
-    /**
-     * Creates new form serverPanel
-     * @param roselSalesServer
-     */
-    public ServerPanel(RoselSalesServer roselSalesServer) {
-        this.roselSalesServer = roselSalesServer;
-        initComponents();
-        loadSettingsToUI(roselSalesServer.getServerSettings());        
+    public RoselServerPanel(RoselServerView view) {        
+        this.view = view;
+        initComponents();        
     }
     
-    public final void loadSettingsToUI(Properties settings){     
-        //settings.getProperty(TOOL_TIP_TEXT_KEY)
-        dbTypeComboBox.setSelectedItem(settings.getProperty(ServerSettings.DB_TYPE).toString());
-        serverTextField.setText(settings.getProperty(ServerSettings.DB_SERVER).toString());
-        dbNameTextField.setText(settings.getProperty(ServerSettings.DB_NAME).toString());
-        loginTextField.setText(settings.getProperty(ServerSettings.DB_LOGIN).toString());
-        passwordField.setText(settings.getProperty(ServerSettings.DB_PASSWORD).toString());
+    public final void loadSettingsToUI(Properties settings){             
+        dbTypeComboBox.setSelectedItem(settings.getProperty(ServerSettings.DB_TYPE));
+        serverTextField.setText(settings.getProperty(ServerSettings.DB_SERVER));
+        dbNameTextField.setText(settings.getProperty(ServerSettings.DB_NAME));
+        loginTextField.setText(settings.getProperty(ServerSettings.DB_LOGIN));
+        passwordField.setText(settings.getProperty(ServerSettings.DB_PASSWORD));
         hostTextField.setText(settings.getProperty(ServerSettings.EMAIL_HOST));
-        portTextField.setText(settings.getProperty(ServerSettings.EMAIL_PORT).toString());
-        fromTextField.setText(settings.getProperty(ServerSettings.EMAIL_FROM).toString());
-        emailLoginTextField.setText(settings.getProperty(ServerSettings.EMAIL_LOGIN).toString());
-        emailPwdTextField.setText(settings.getProperty(ServerSettings.EMAIL_PASSWORD).toString());        
+        portTextField.setText(settings.getProperty(ServerSettings.EMAIL_PORT));
+        fromTextField.setText(settings.getProperty(ServerSettings.EMAIL_FROM));
+        emailLoginTextField.setText(settings.getProperty(ServerSettings.EMAIL_LOGIN));
+        emailPwdTextField.setText(settings.getProperty(ServerSettings.EMAIL_PASSWORD));        
     }
 
+    public void setServerStateLabel(boolean state){
+        if(state){
+            serverStateLabel.setBackground(Color.green);
+        } else {
+            serverStateLabel.setBackground(Color.red);
+        }
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -60,7 +63,6 @@ public class ServerPanel extends javax.swing.JPanel {
         portTextField = new javax.swing.JTextField();
         emailLoginTextField = new javax.swing.JTextField();
         emailPwdTextField = new javax.swing.JPasswordField();
-        saveEmailSettingsButton = new javax.swing.JButton();
         jLabel10 = new javax.swing.JLabel();
         fromTextField = new javax.swing.JTextField();
         dbPanel = new javax.swing.JPanel();
@@ -70,11 +72,15 @@ public class ServerPanel extends javax.swing.JPanel {
         jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
-        saveDbSettingsButton = new javax.swing.JButton();
         serverTextField = new javax.swing.JTextField();
         dbNameTextField = new javax.swing.JTextField();
         loginTextField = new javax.swing.JTextField();
         passwordField = new javax.swing.JPasswordField();
+        jPanel1 = new javax.swing.JPanel();
+        serverStateLabel = new javax.swing.JLabel();
+        startButton = new javax.swing.JButton();
+        stopButton = new javax.swing.JButton();
+        saveSettingsButton = new javax.swing.JButton();
 
         initButton.setText("Инициализация");
         initButton.addActionListener(new java.awt.event.ActionListener() {
@@ -112,13 +118,6 @@ public class ServerPanel extends javax.swing.JPanel {
             }
         });
 
-        saveEmailSettingsButton.setText("Save");
-        saveEmailSettingsButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                saveEmailSettingsButtonActionPerformed(evt);
-            }
-        });
-
         jLabel10.setText("From:");
 
         fromTextField.addActionListener(new java.awt.event.ActionListener() {
@@ -141,16 +140,12 @@ public class ServerPanel extends javax.swing.JPanel {
                     .addComponent(jLabel10))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(mailPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(hostTextField, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(hostTextField, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 147, Short.MAX_VALUE)
                     .addComponent(portTextField, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(fromTextField, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(emailLoginTextField, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(emailPwdTextField, javax.swing.GroupLayout.Alignment.TRAILING))
                 .addContainerGap())
-            .addGroup(mailPanelLayout.createSequentialGroup()
-                .addGap(10, 10, 10)
-                .addComponent(saveEmailSettingsButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(90, 90, 90))
         );
         mailPanelLayout.setVerticalGroup(
             mailPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -175,9 +170,7 @@ public class ServerPanel extends javax.swing.JPanel {
                 .addGroup(mailPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
                     .addComponent(emailPwdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(saveEmailSettingsButton)
-                .addGap(37, 37, 37))
+                .addGap(66, 66, 66))
         );
 
         mailPanelLayout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {hostTextField, jLabel1});
@@ -203,13 +196,6 @@ public class ServerPanel extends javax.swing.JPanel {
 
         jLabel9.setText("Pwd:");
 
-        saveDbSettingsButton.setText("Save");
-        saveDbSettingsButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                saveDbSettingsButtonActionPerformed(evt);
-            }
-        });
-
         serverTextField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 serverTextFieldActionPerformed(evt);
@@ -224,26 +210,21 @@ public class ServerPanel extends javax.swing.JPanel {
                 .addGroup(dbPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(dbPanelLayout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(saveDbSettingsButton, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(dbPanelLayout.createSequentialGroup()
                         .addGroup(dbPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(dbPanelLayout.createSequentialGroup()
-                                .addContainerGap()
-                                .addGroup(dbPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel6)
-                                    .addComponent(jLabel7)
-                                    .addComponent(jLabel8)
-                                    .addComponent(jLabel9)))
-                            .addGroup(dbPanelLayout.createSequentialGroup()
-                                .addGap(10, 10, 10)
-                                .addComponent(jLabel5)))
-                        .addGap(18, 18, 18)
-                        .addGroup(dbPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(dbTypeComboBox, 0, 126, Short.MAX_VALUE)
-                            .addComponent(serverTextField)
-                            .addComponent(dbNameTextField)
-                            .addComponent(loginTextField)
-                            .addComponent(passwordField))))
+                            .addComponent(jLabel6)
+                            .addComponent(jLabel7)
+                            .addComponent(jLabel8)
+                            .addComponent(jLabel9)))
+                    .addGroup(dbPanelLayout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addComponent(jLabel5)))
+                .addGap(18, 18, 18)
+                .addGroup(dbPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(dbTypeComboBox, 0, 126, Short.MAX_VALUE)
+                    .addComponent(serverTextField)
+                    .addComponent(dbNameTextField)
+                    .addComponent(loginTextField)
+                    .addComponent(passwordField))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         dbPanelLayout.setVerticalGroup(
@@ -269,9 +250,62 @@ public class ServerPanel extends javax.swing.JPanel {
                 .addGroup(dbPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel9)
                     .addComponent(passwordField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addComponent(saveDbSettingsButton))
+                .addGap(41, 41, 41))
         );
+
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Server control"));
+
+        serverStateLabel.setText("server state");
+        serverStateLabel.setOpaque(true);
+
+        startButton.setText("Start");
+        startButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                startButtonActionPerformed(evt);
+            }
+        });
+
+        stopButton.setText("Stop");
+        stopButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                stopButtonActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(startButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(stopButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addComponent(serverStateLabel)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(serverStateLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(startButton)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(stopButton)
+                .addContainerGap(88, Short.MAX_VALUE))
+        );
+
+        saveSettingsButton.setText("Save");
+        saveSettingsButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveSettingsButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -279,22 +313,30 @@ public class ServerPanel extends javax.swing.JPanel {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(initButton)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(saveSettingsButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(initButton, javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(dbPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(mailPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(395, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(151, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(initButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(dbPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(mailPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 193, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(43, 43, 43))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(dbPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(mailPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 163, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(18, 18, 18)
+                .addComponent(saveSettingsButton)
+                .addGap(89, 89, 89))
         );
 
         dbPanel.getAccessibleContext().setAccessibleName("");
@@ -302,7 +344,7 @@ public class ServerPanel extends javax.swing.JPanel {
 
     private void initButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_initButtonActionPerformed
         // connect to DB and init it
-        roselSalesServer.initDB();
+        view.initButtonActionPerformed();
     }//GEN-LAST:event_initButtonActionPerformed
 
     private void hostTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hostTextFieldActionPerformed
@@ -313,29 +355,24 @@ public class ServerPanel extends javax.swing.JPanel {
         // TODO add your handling code here:
     }//GEN-LAST:event_portTextFieldActionPerformed
 
-    private void saveDbSettingsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveDbSettingsButtonActionPerformed
+    private void serverTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_serverTextFieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_serverTextFieldActionPerformed
+
+    private void saveSettingsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveSettingsButtonActionPerformed
         Properties settings = new Properties();        
         settings.setProperty(ServerSettings.DB_TYPE, (String) dbTypeComboBox.getSelectedItem());
         settings.setProperty(ServerSettings.DB_SERVER, serverTextField.getText());
         settings.setProperty(ServerSettings.DB_NAME, dbNameTextField.getText());
         settings.setProperty(ServerSettings.DB_LOGIN, loginTextField.getText());
-        settings.put(ServerSettings.DB_PASSWORD, String.valueOf(passwordField.getPassword()));        
-        roselSalesServer.saveSettings(settings);
-    }//GEN-LAST:event_saveDbSettingsButtonActionPerformed
-
-    private void serverTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_serverTextFieldActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_serverTextFieldActionPerformed
-
-    private void saveEmailSettingsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveEmailSettingsButtonActionPerformed
-        Properties settings = new Properties();        
+        settings.setProperty(ServerSettings.DB_PASSWORD, String.valueOf(passwordField.getPassword()));        
         settings.setProperty(ServerSettings.EMAIL_HOST, hostTextField.getText());
         settings.setProperty(ServerSettings.EMAIL_PORT, portTextField.getText());
         settings.setProperty(ServerSettings.EMAIL_FROM, fromTextField.getText());
         settings.setProperty(ServerSettings.EMAIL_LOGIN, emailLoginTextField.getText());
         settings.put(ServerSettings.EMAIL_PASSWORD, String.valueOf(emailPwdTextField.getPassword()));        
-        roselSalesServer.saveEmailSettings(settings);
-    }//GEN-LAST:event_saveEmailSettingsButtonActionPerformed
+        view.saveSettings(settings);        
+    }//GEN-LAST:event_saveSettingsButtonActionPerformed
 
     private void fromTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fromTextFieldActionPerformed
         // TODO add your handling code here:
@@ -344,6 +381,14 @@ public class ServerPanel extends javax.swing.JPanel {
     private void emailPwdTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_emailPwdTextFieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_emailPwdTextFieldActionPerformed
+
+    private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
+        view.startServer();
+    }//GEN-LAST:event_startButtonActionPerformed
+
+    private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
+        view.stopServer();
+    }//GEN-LAST:event_stopButtonActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -365,12 +410,15 @@ public class ServerPanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JTextField loginTextField;
     private javax.swing.JPanel mailPanel;
     private javax.swing.JPasswordField passwordField;
     private javax.swing.JTextField portTextField;
-    private javax.swing.JButton saveDbSettingsButton;
-    private javax.swing.JButton saveEmailSettingsButton;
+    private javax.swing.JButton saveSettingsButton;
+    private javax.swing.JLabel serverStateLabel;
     private javax.swing.JTextField serverTextField;
+    private javax.swing.JButton startButton;
+    private javax.swing.JButton stopButton;
     // End of variables declaration//GEN-END:variables
 }

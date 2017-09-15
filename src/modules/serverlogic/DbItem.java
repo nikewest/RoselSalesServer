@@ -1,4 +1,4 @@
-package roselsalesserver;
+package modules.serverlogic;
 
 import java.util.ArrayList;
 import org.json.simple.JSONArray;
@@ -9,15 +9,15 @@ public class DbItem {
     public static final int ACTION_UPDATE = 2;
     public static final int ACTION_DELETE = 3;
     
-    long id;
-    String table_name;
-    int action;
-    ArrayList<ItemValue> item_values = new ArrayList();
+    public long id;
+    public String table_name;
+    public int action;
+    public ArrayList<ItemValue> item_values = new ArrayList();
     
     public class ItemValue{
-        String name;
-        String type;
-        String value;
+        public String name;
+        public String type;
+        public String value;
     }
     
     public void addItemValue(String name, String type, String value) {
@@ -43,5 +43,10 @@ public class DbItem {
         }
         jsonObject.put("item_values", values);        
         return jsonObject;
+    }
+
+    @Override
+    public String toString() {
+        return this.toJSONObject().toString();
     }
 }
