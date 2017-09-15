@@ -30,6 +30,7 @@ public class DatabaseManager {
     private DatabaseManager(Properties prop) throws ClassNotFoundException {
         setConnectionProperties(prop);
 //        initDriver();
+
     }
 
     public Connection getDbConnection() throws SQLException {
