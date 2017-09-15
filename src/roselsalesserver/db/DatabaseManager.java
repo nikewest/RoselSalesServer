@@ -32,8 +32,10 @@ public class DatabaseManager {
     private volatile static DatabaseManager databaseManagerInstance = null;
     
     private DatabaseManager(Properties prop){
+        
         setConnectionProperties(prop);
-        initDriver();        
+        initDriver(); 
+        
     }
 
     public synchronized Connection getDbConnection() throws Exception {
