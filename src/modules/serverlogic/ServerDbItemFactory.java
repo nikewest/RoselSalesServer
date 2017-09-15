@@ -1,6 +1,5 @@
 package modules.serverlogic;
 
-import modules.serverlogic.DbItem;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -12,7 +11,7 @@ import org.json.simple.parser.JSONParser;
 
 public class ServerDbItemFactory {
         
-    private static Logger LOG = Logger.getLogger(ServerDbItemFactory.class.getName());
+    private static final Logger LOG = Logger.getLogger(ServerDbItemFactory.class.getName());
     
     public DbItem fillFromJSONString(String jsonString) {
         DbItem dbItem = new DbItem();

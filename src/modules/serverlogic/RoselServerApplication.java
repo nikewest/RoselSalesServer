@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 
 public class RoselServerApplication {
     
-    private static Logger LOG = Logger.getLogger(RoselServerApplication.class.getName());
+    private static final Logger LOG = Logger.getLogger(RoselServerApplication.class.getName());
     
     public static void main(String[] args) {
         initLogger();
