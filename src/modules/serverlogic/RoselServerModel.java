@@ -70,7 +70,7 @@ public class RoselServerModel {
     }
     
     public void saveServerSettings(){
-        File settingsFile = new File("settings");
+        File settingsFile = new File("settings.properties");
         try {
             if (!settingsFile.exists()) {
                 settingsFile.createNewFile();

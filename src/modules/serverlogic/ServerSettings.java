@@ -39,7 +39,7 @@ public final class ServerSettings {
         
     }
     
-    public static final Properties getSettingsMap(){ 
+    private static final Properties getSettingsMap(){ 
         
         Properties settings = new Properties();
         Set keySet = getSettingsKeySet();        
