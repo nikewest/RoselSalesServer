@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package roselsalesserver.UI;
+package modules.UI;
 
 import java.awt.Color;
 import java.util.Properties;

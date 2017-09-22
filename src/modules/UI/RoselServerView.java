@@ -1,4 +1,4 @@
-package roselsalesserver.UI;
+package modules.UI;
 
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;

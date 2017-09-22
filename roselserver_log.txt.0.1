@@ -1,37 +1,6 @@
-сен 15, 2017 11:50:47 AM modules.transport.ServerTransport start
-INFO: Server started
-сен 15, 2017 11:51:41 AM modules.serverlogic.RoselServerModel postOrders
-SEVERE: null
-com.sun.mail.util.MailConnectException: Couldn't connect to host, port: localhost, 25; timeout -1;
-  nested exception is:
-	java.net.ConnectException: Connection refused: connect
-	at com.sun.mail.smtp.SMTPTransport.openServer(SMTPTransport.java:2118)
-	at com.sun.mail.smtp.SMTPTransport.protocolConnect(SMTPTransport.java:712)
-	at javax.mail.Service.connect(Service.java:366)
-	at javax.mail.Service.connect(Service.java:246)
-	at javax.mail.Service.connect(Service.java:267)
-	at javax.mail.Transport.send0(Transport.java:252)
-	at javax.mail.Transport.send(Transport.java:174)
-	at modules.serverlogic.RoselServerModel.sendEmail(RoselServerModel.java:521)
-	at modules.serverlogic.RoselServerModel.sendNotification(RoselServerModel.java:500)
-	at modules.serverlogic.RoselServerModel.sendNotificationsForOrders(RoselServerModel.java:478)
-	at modules.serverlogic.RoselServerModel.postOrders(RoselServerModel.java:383)
-	at modules.serverlogic.RoselServerModel.handleClientRequest(RoselServerModel.java:176)
-	at modules.transport.ClientConnectionHandler.run(ClientConnectionHandler.java:64)
-Caused by: java.net.ConnectException: Connection refused: connect
-	at java.net.DualStackPlainSocketImpl.connect0(Native Method)
-	at java.net.DualStackPlainSocketImpl.socketConnect(DualStackPlainSocketImpl.java:79)
-	at java.net.AbstractPlainSocketImpl.doConnect(AbstractPlainSocketImpl.java:350)
-	at java.net.AbstractPlainSocketImpl.connectToAddress(AbstractPlainSocketImpl.java:206)
-	at java.net.AbstractPlainSocketImpl.connect(AbstractPlainSocketImpl.java:188)
-	at java.net.PlainSocketImpl.connect(PlainSocketImpl.java:172)
-	at java.net.SocksSocketImpl.connect(SocksSocketImpl.java:392)
-	at java.net.Socket.connect(Socket.java:589)
-	at java.net.Socket.connect(Socket.java:538)
-	at com.sun.mail.util.SocketFetcher.createSocket(SocketFetcher.java:331)
-	at com.sun.mail.util.SocketFetcher.getSocket(SocketFetcher.java:238)
-	at com.sun.mail.smtp.SMTPTransport.openServer(SMTPTransport.java:2084)
-	... 12 more
-
-сен 15, 2017 11:53:26 AM modules.transport.ServerTransport stop
-INFO: Server stoped
+сен 19, 2017 2:05:43 PM org.springframework.context.support.AbstractApplicationContext prepareRefresh
+INFO: Refreshing org.springframework.context.annotation.AnnotationConfigApplicationContext@41602029: startup date [Tue Sep 19 14:05:43 MSK 2017]; root of context hierarchy
+сен 19, 2017 2:05:44 PM org.springframework.jdbc.datasource.DriverManagerDataSource setDriverClassName
+INFO: Loaded JDBC driver: com.microsoft.sqlserver.jdbc.SQLServerDriver
+сен 19, 2017 2:05:44 PM org.springframework.jdbc.datasource.SingleConnectionDataSource initConnection
+INFO: Established shared JDBC Connection: ConnectionID:1 ClientConnectionId: ab2644bf-ba41-4fb2-bc95-f8d27a400aaa

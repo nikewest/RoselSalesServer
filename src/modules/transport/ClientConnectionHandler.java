@@ -7,7 +7,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import modules.serverlogic.ClientModel;
+import modules.serverlogic.DeviceInfo;
 import modules.serverlogic.RoselServerModel;
 
 public class ClientConnectionHandler extends Thread {
@@ -16,7 +16,7 @@ public class ClientConnectionHandler extends Thread {
     private PrintWriter writer;    
     private BufferedReader reader;    
     private final RoselServerModel server;
-    private ClientModel clientModel;
+    private DeviceInfo deviceInfo;
     
     public ClientConnectionHandler(Socket clientSocket, RoselServerModel server) {
         this.clientSocket = clientSocket;  
@@ -49,7 +49,7 @@ public class ClientConnectionHandler extends Thread {
             return;
         }
         try {
-            clientModel = server.buildClientModel(request);
+            deviceInfo = server.getDeviceInfo(request.getDevice_id());
         } catch (Exception ex) {            
             server.handleConnectionException(ex);
             stopHandle();
@@ -57,7 +57,7 @@ public class ClientConnectionHandler extends Thread {
         }
         TransportMessage response;
         try {
-            response = server.handleClientRequest(request, clientModel);
+            response = server.handleClientRequest(request, deviceInfo);
         } catch (Exception ex) {            
             server.handleConnectionException(ex);
             stopHandle();
@@ -65,7 +65,7 @@ public class ClientConnectionHandler extends Thread {
         }
         write(response.toString());
         if (response.getIntention().equals(TransportMessage.UPDATE)) {
-            server.commitClientsUpdate(clientModel);
+            //server.commitClientsUpdate(clientModel);
         }
         freeRes();        
     }
@@ -75,7 +75,7 @@ public class ClientConnectionHandler extends Thread {
     }
     
     public void freeRes(){
-        clientModel = null;
+        deviceInfo = null;
         writer.close();
         try {
             reader.close();

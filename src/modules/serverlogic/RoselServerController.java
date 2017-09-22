@@ -1,7 +1,7 @@
 package modules.serverlogic;
 
 import java.util.Properties;
-import roselsalesserver.UI.RoselServerView;
+import modules.UI.RoselServerView;
 
 public class RoselServerController {    
     
