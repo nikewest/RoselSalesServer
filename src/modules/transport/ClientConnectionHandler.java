@@ -42,8 +42,9 @@ public class ClientConnectionHandler extends Thread {
         String clientsRequest = read();
         TransportMessage request;
         try {
-            request = TransportMessage.fromString(clientsRequest);
-        } catch (TransportMessageException ex) {            
+            //request = TransportMessage.fromString(clientsRequest);
+            request = TransportMessage.fromJSONString(clientsRequest);
+        } catch (Exception ex) {            
             server.handleConnectionException(ex);
             stopHandle();
             return;
@@ -55,7 +56,9 @@ public class ClientConnectionHandler extends Thread {
             stopHandle();
             return;
         }
+        
         TransportMessage response;
+        
         try {
             response = server.handleClientRequest(request, deviceInfo);
         } catch (Exception ex) {            
@@ -63,10 +66,9 @@ public class ClientConnectionHandler extends Thread {
             stopHandle();
             return;
         }
-        write(response.toString());
-        if (response.getIntention().equals(TransportMessage.UPDATE)) {
-            //server.commitClientsUpdate(clientModel);
-        }
+       
+        write(response.toJSONString());
+        
         freeRes();        
     }
     
@@ -86,17 +88,17 @@ public class ClientConnectionHandler extends Thread {
         } catch (IOException ignore) {            
         }        
     }
-    
-    public String read(){
-        String line;
-        StringBuilder stringBuilder = new StringBuilder();
+
+    public String read() {
         try {
-            while((line = reader.readLine())!= null && !line.equals(TransportMessage.END)){
-                stringBuilder.append(line).append('\n');
+            String line = reader.readLine();
+            if (line != null) {
+                return line;
             }
-        } catch (IOException ex) {            
+        } catch (IOException ex) {
+            server.handleConnectionException(ex);
         }
-        return stringBuilder.toString();
+        return "";
     }
     
     public void write(String... stringData){

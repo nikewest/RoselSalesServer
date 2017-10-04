@@ -7,7 +7,7 @@ package modules.UI;
 
 import java.awt.Color;
 import java.util.Properties;
-import modules.serverlogic.ServerSettings;
+import modules.serverlogic.SettingsManager;
 
 
 /**
@@ -24,16 +24,16 @@ public class RoselServerPanel extends javax.swing.JPanel {
     }
     
     public final void loadSettingsToUI(Properties settings){             
-        dbTypeComboBox.setSelectedItem(settings.getProperty(ServerSettings.DB_TYPE));
-        serverTextField.setText(settings.getProperty(ServerSettings.DB_SERVER));
-        dbNameTextField.setText(settings.getProperty(ServerSettings.DB_NAME));
-        loginTextField.setText(settings.getProperty(ServerSettings.DB_LOGIN));
-        passwordField.setText(settings.getProperty(ServerSettings.DB_PASSWORD));
-        hostTextField.setText(settings.getProperty(ServerSettings.EMAIL_HOST));
-        portTextField.setText(settings.getProperty(ServerSettings.EMAIL_PORT));
-        fromTextField.setText(settings.getProperty(ServerSettings.EMAIL_FROM));
-        emailLoginTextField.setText(settings.getProperty(ServerSettings.EMAIL_LOGIN));
-        emailPwdTextField.setText(settings.getProperty(ServerSettings.EMAIL_PASSWORD));        
+        dbTypeComboBox.setSelectedItem(settings.getProperty(SettingsManager.DB_TYPE));
+        serverTextField.setText(settings.getProperty(SettingsManager.DB_SERVER));
+        dbNameTextField.setText(settings.getProperty(SettingsManager.DB_NAME));
+        loginTextField.setText(settings.getProperty(SettingsManager.DB_LOGIN));
+        passwordField.setText(settings.getProperty(SettingsManager.DB_PASSWORD));
+        hostTextField.setText(settings.getProperty(SettingsManager.EMAIL_HOST));
+        portTextField.setText(settings.getProperty(SettingsManager.EMAIL_PORT));
+        fromTextField.setText(settings.getProperty(SettingsManager.EMAIL_FROM));
+        emailLoginTextField.setText(settings.getProperty(SettingsManager.EMAIL_LOGIN));
+        emailPwdTextField.setText(settings.getProperty(SettingsManager.EMAIL_PASSWORD));        
     }
 
     public void setServerStateLabel(boolean state){
@@ -185,6 +185,11 @@ public class RoselServerPanel extends javax.swing.JPanel {
         dbPanel.setName(""); // NOI18N
 
         dbTypeComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "MS SQL Server", "PostgreSQL", "SQLite" }));
+        dbTypeComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbTypeComboBoxActionPerformed(evt);
+            }
+        });
 
         jLabel5.setText("Type:");
 
@@ -361,16 +366,16 @@ public class RoselServerPanel extends javax.swing.JPanel {
 
     private void saveSettingsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveSettingsButtonActionPerformed
         Properties settings = new Properties();        
-        settings.setProperty(ServerSettings.DB_TYPE, (String) dbTypeComboBox.getSelectedItem());
-        settings.setProperty(ServerSettings.DB_SERVER, serverTextField.getText());
-        settings.setProperty(ServerSettings.DB_NAME, dbNameTextField.getText());
-        settings.setProperty(ServerSettings.DB_LOGIN, loginTextField.getText());
-        settings.setProperty(ServerSettings.DB_PASSWORD, String.valueOf(passwordField.getPassword()));        
-        settings.setProperty(ServerSettings.EMAIL_HOST, hostTextField.getText());
-        settings.setProperty(ServerSettings.EMAIL_PORT, portTextField.getText());
-        settings.setProperty(ServerSettings.EMAIL_FROM, fromTextField.getText());
-        settings.setProperty(ServerSettings.EMAIL_LOGIN, emailLoginTextField.getText());
-        settings.put(ServerSettings.EMAIL_PASSWORD, String.valueOf(emailPwdTextField.getPassword()));        
+        settings.setProperty(SettingsManager.DB_TYPE, (String) dbTypeComboBox.getSelectedItem());
+        settings.setProperty(SettingsManager.DB_SERVER, serverTextField.getText());
+        settings.setProperty(SettingsManager.DB_NAME, dbNameTextField.getText());
+        settings.setProperty(SettingsManager.DB_LOGIN, loginTextField.getText());
+        settings.setProperty(SettingsManager.DB_PASSWORD, String.valueOf(passwordField.getPassword()));        
+        settings.setProperty(SettingsManager.EMAIL_HOST, hostTextField.getText());
+        settings.setProperty(SettingsManager.EMAIL_PORT, portTextField.getText());
+        settings.setProperty(SettingsManager.EMAIL_FROM, fromTextField.getText());
+        settings.setProperty(SettingsManager.EMAIL_LOGIN, emailLoginTextField.getText());
+        settings.put(SettingsManager.EMAIL_PASSWORD, String.valueOf(emailPwdTextField.getPassword()));        
         view.saveSettings(settings);        
     }//GEN-LAST:event_saveSettingsButtonActionPerformed
 
@@ -389,6 +394,10 @@ public class RoselServerPanel extends javax.swing.JPanel {
     private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopButtonActionPerformed
         view.stopServer();
     }//GEN-LAST:event_stopButtonActionPerformed
+
+    private void dbTypeComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbTypeComboBoxActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_dbTypeComboBoxActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

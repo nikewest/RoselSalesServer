@@ -4,14 +4,15 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import modules.serverlogic.DeviceInfo;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import modules.serverlogic.RoselServerModel;
+import modules.serverlogic.SettingsManager;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -22,13 +23,20 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.StatementCallback;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionSynchronizationUtils;
 
 @Component("serverDAO")
 public class RoselServerDAOjdbc implements RoselServerDAO {
+    
+    public static final String JDBC_DRIVER_POSTGRE = "org.postgresql.Driver";
+    public static final String JDBC_DRIVER_SQLITE = "org.sqlite.JDBC";
+    public static final String JDBC_DRIVER_SQL = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
     
     private static final Logger LOG = Logger.getLogger(RoselServerModel.class.getName());
     
@@ -36,6 +44,32 @@ public class RoselServerDAOjdbc implements RoselServerDAO {
     private JdbcTemplate jdbcTemplate;
 
     public RoselServerDAOjdbc() {
+    }
+    
+    @Override
+    public void setDataSourceSettings(Properties settings){                
+        DriverManagerDataSource ds = (DriverManagerDataSource) jdbcTemplate.getDataSource();
+//        LOG.log(Level.INFO, "apply settings");
+        switch(settings.getProperty(SettingsManager.DB_TYPE)){
+            case "MS SQL Server":
+                ds.setDriverClassName(JDBC_DRIVER_SQL);                        
+                ds.setUrl("jdbc:sqlserver://" + settings.getProperty(SettingsManager.DB_SERVER) + ";databaseName=" + settings.getProperty(SettingsManager.DB_NAME));
+                ds.setUsername(settings.getProperty(SettingsManager.DB_LOGIN));
+                ds.setPassword(settings.getProperty(SettingsManager.DB_PASSWORD));                
+                break;
+            case "PostgreSQL":
+                ds.setDriverClassName(JDBC_DRIVER_POSTGRE);                                        
+                ds.setUrl("jdbc:postgresql://" + settings.getProperty(SettingsManager.DB_SERVER) + "/" + settings.getProperty(SettingsManager.DB_NAME));
+                ds.setUsername(settings.getProperty(SettingsManager.DB_LOGIN));
+                ds.setPassword(settings.getProperty(SettingsManager.DB_PASSWORD));                
+                break;
+            case "SQLite":
+                ds.setDriverClassName(JDBC_DRIVER_SQLITE);                        
+                ds.setUrl("jdbc:sqlite://" + settings.getProperty(SettingsManager.DB_NAME));
+                ds.setUsername(settings.getProperty(SettingsManager.DB_LOGIN));
+                ds.setPassword(settings.getProperty(SettingsManager.DB_PASSWORD));                
+                break;
+        }        
     }
 
     @Override
@@ -173,18 +207,15 @@ public class RoselServerDAOjdbc implements RoselServerDAO {
                 + "INSERT INTO DEVICES (device_id) VALUES ('" + device_id + "');";
     }
 
-    public DeviceInfo initializeDevice(String device_id) {
-        
+    public DeviceInfo initializeDevice(String device_id) {        
         jdbcTemplate.execute(getNewDeviceQuery(device_id));
         List<DeviceInfo> res = jdbcTemplate.query(getDeviceInfoQuery(device_id), new DeviceInfoRowMapper());
-        DeviceInfo deviceInfo = res.get(0);
-        
-        return deviceInfo;
-        
+        DeviceInfo deviceInfo = res.get(0);        
+        return deviceInfo;        
     }
     
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional("transactionManager")
     public void postOrdersFromJSON(long device_id, ArrayList<String> ordersInJSON) {
 
         String orderDate;
@@ -193,47 +224,52 @@ public class RoselServerDAOjdbc implements RoselServerDAO {
         String insertQuery;
 
         JSONParser parser = new JSONParser();
-        org.json.simple.JSONObject jsonObject;
+        JSONObject jsonObject;
         JSONArray lines;
         JSONObject orderLine;
 
-        try {
-            for (String jsonString : ordersInJSON) {
+        Boolean txactive = TransactionSynchronizationManager.isActualTransactionActive();
+        LOG.log(Level.SEVERE, "Transaction is active: " + txactive.toString());
+        
+        for (String jsonString : ordersInJSON) {
+            try {
                 jsonObject = (JSONObject) parser.parse(jsonString);
-                if (jsonObject.get("order_date") == null) {
-                    orderDate = "null";
-                } else {
-                    orderDate = "'" + jsonObject.get("order_date").toString() + "'";
-                }
-                if (jsonObject.get("shipping_date") == null) {
-                    shippingDate = "null";
-                } else {
-                    shippingDate = "'" + jsonObject.get("shipping_date").toString() + "'";
-                }
-                insertQuery = "INSERT INTO ORDERS (device_id, client_id, order_date, shipping_date, sum, comment, address_id) "
-                        + "VALUES ("
-                        + device_id + ", "
-                        + jsonObject.get("client_id") + ", "
-                        + orderDate + ", "
-                        + shippingDate + ", "
-                        + "ROUND(" + jsonObject.get("sum") + ",2), '"
-                        + jsonObject.get("comment") + "', "
-                        + jsonObject.get("address_id") + ");";
-                GeneratedKeyHolder generatedKeyHolder = new GeneratedKeyHolder();
-                jdbcTemplate.update(new OrdersPreparedStatementCreator(insertQuery), generatedKeyHolder);
-                order_id = generatedKeyHolder.getKey().longValue();
-
-                lines = (JSONArray) jsonObject.get("lines");
-                int len = lines.size();
-                for (int i = 0; i < len; i++) {
-                    orderLine = (JSONObject) lines.get(i);
-                    insertQuery = "INSERT INTO ORDERLINES (order_id, product_id, quantity, price, sum) VALUES (" + String.format("%d", order_id) + ", " + orderLine.get("product_id").toString() + ", " + orderLine.get("quantity").toString() + "," + orderLine.get("price").toString() + ", " + orderLine.get("sum").toString() + ");";
-                    jdbcTemplate.execute(insertQuery);
-                }
-
+            } catch (ParseException ex) {
+                jsonObject = new JSONObject();
+                LOG.log(Level.SEVERE, null, ex);
             }
-        } catch (ParseException pex) {
-            LOG.log(Level.SEVERE, pex.getMessage());
+            if (jsonObject.get("order_date") == null) {
+                orderDate = "null";
+            } else {
+                orderDate = "'" + jsonObject.get("order_date").toString() + "'";
+            }
+            if (jsonObject.get("shipping_date") == null) {
+                shippingDate = "null";
+            } else {
+                shippingDate = "'" + jsonObject.get("shipping_date").toString() + "'";
+            }
+            insertQuery = "INSERT INTO ORDERS (device_id, client_id, order_date, shipping_date, sum, comment, address_id) "
+                    + "VALUES ("
+                    + device_id + ", "
+                    + jsonObject.get("client_id") + ", "
+                    + orderDate + ", "
+                    + shippingDate + ", "
+                    + "ROUND(" + jsonObject.get("sum") + ",2), '"
+                    + jsonObject.get("comment") + "', "
+                    + jsonObject.get("address_id") + ");";
+            GeneratedKeyHolder generatedKeyHolder = new GeneratedKeyHolder();
+
+            jdbcTemplate.update(new OrdersPreparedStatementCreator(insertQuery), generatedKeyHolder);
+            order_id = generatedKeyHolder.getKey().longValue();
+
+            lines = (JSONArray) jsonObject.get("lines");
+            int len = lines.size();
+            for (int i = 0; i < len; i++) {
+                orderLine = (JSONObject) lines.get(i);
+                insertQuery = "INSERT INTO ORDERLINES (order_id, product_id, quantity, price, sum) VALUES (" + String.format("%d", order_id) + ", " + orderLine.get("product_id").toString() + ", " + orderLine.get("quantity").toString() + "," + orderLine.get("price").toString() + ", " + orderLine.get("sum").toString() + ");";
+                jdbcTemplate.execute(insertQuery);
+            }
+
         }
     }
 
