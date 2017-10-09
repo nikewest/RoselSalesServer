@@ -47,7 +47,6 @@ public class RoselServerDAOjdbc implements RoselServerDAO {
     @Override
     public void setDataSourceSettings(Properties settings){                
         DriverManagerDataSource ds = (DriverManagerDataSource) jdbcTemplate.getDataSource();
-//        LOG.log(Level.INFO, "apply settings");
         switch(settings.getProperty(SettingsManager.DB_TYPE)){
             case "MS SQL Server":
                 ds.setDriverClassName(JDBC_DRIVER_SQL);                        
@@ -74,59 +73,6 @@ public class RoselServerDAOjdbc implements RoselServerDAO {
     public String getClientName(long clientId) {
         String sql = "SELECT name FROM CLIENTS WHERE _id = ?";
         return jdbcTemplate.queryForObject(sql, String.class, clientId);
-    }
-
-    @Override
-    public ArrayList<String> getUpdates(long device_id, ArrayList<String> updateRequestInfo) {
-
-        ArrayList<String> res = new ArrayList<>();
-        RoselUpdateStructure responseUpdateStructure;
-        RoselUpdateStructure updateStructure;
-        UpdateStructureFactory updateStructureFactory = new RoselUpdateStructureFactory(new RoselUpdateItemFactory());
-
-        for (String string : updateRequestInfo) {
-            updateStructure = updateStructureFactory.fillFromJSONString(string);
-            switch (updateStructure.getTableName()) {
-                case "CLIENTS":
-                    //CLIENTS updates
-                    responseUpdateStructure = jdbcTemplate.query(getClientsUpdatesQuery(updateStructure.getUpdateVersion(), device_id), new RoselUpdateResultSetExtractor("CLIENTS"));
-                    if (!responseUpdateStructure.isEmpty()) {
-                        res.add(responseUpdateStructure.toJSONObject().toJSONString());
-                    }
-                    break;
-                case "PRODUCTS":
-                    //PRODUCTS updates
-                    responseUpdateStructure = jdbcTemplate.query(getProductsUpdatesQuery(updateStructure.getUpdateVersion()), new RoselUpdateResultSetExtractor("PRODUCTS"));
-                    if (!responseUpdateStructure.isEmpty()) {
-                        res.add(responseUpdateStructure.toJSONObject().toJSONString());
-                    }
-                    break;
-
-                case "ADDRESSES":
-                    //ADDRESSES updates
-                    responseUpdateStructure = jdbcTemplate.query(getAddressesUpdatesQuery(updateStructure.getUpdateVersion(), device_id), new RoselUpdateResultSetExtractor("ADDRESSES"));
-                    if (!responseUpdateStructure.isEmpty()) {
-                        res.add(responseUpdateStructure.toJSONObject().toJSONString());
-                    }
-                    break;
-                case "PRICES":
-                    //PRICES updates
-                    responseUpdateStructure = jdbcTemplate.query(getPricesUpdatesQuery(updateStructure.getUpdateVersion(), device_id), new RoselUpdateResultSetExtractor("PRICES"));
-                    if (!responseUpdateStructure.isEmpty()) {
-                        res.add(responseUpdateStructure.toJSONObject().toJSONString());
-                    }
-                    break;
-                case "STOCK":
-                    //STOCK updates
-                    responseUpdateStructure = jdbcTemplate.query(getStockUpdatesQuery(), new RoselUpdateResultSetExtractor("STOCK"));
-                    if (!responseUpdateStructure.isEmpty()) {
-                        res.add(responseUpdateStructure.toJSONObject().toJSONString());
-                    }
-                    break;
-            }
-        }
-
-        return res;
     }
 
     private static String getClientsUpdatesQuery(long version, long device_id) {
@@ -269,6 +215,34 @@ public class RoselServerDAOjdbc implements RoselServerDAO {
             }
 
         }
+    }
+
+    @Override
+    public RoselUpdateInfo getUpdateInfo(long device_id, RoselUpdateInfo requestInfo) {
+        RoselUpdateInfo responseUpdateInfo = null;
+        switch (requestInfo.getTable()) {
+            case "CLIENTS":
+                //CLIENTS updates
+                responseUpdateInfo = jdbcTemplate.query(getClientsUpdatesQuery(requestInfo.getVersion(), device_id), new RoselUpdateResultSetExtractor("CLIENTS"));
+                break;
+            case "PRODUCTS":
+                //PRODUCTS updates
+                responseUpdateInfo = jdbcTemplate.query(getProductsUpdatesQuery(requestInfo.getVersion()), new RoselUpdateResultSetExtractor("PRODUCTS"));
+                break;
+            case "ADDRESSES":
+                //ADDRESSES updates
+                responseUpdateInfo = jdbcTemplate.query(getAddressesUpdatesQuery(requestInfo.getVersion(), device_id), new RoselUpdateResultSetExtractor("ADDRESSES"));
+                break;
+            case "PRICES":
+                //PRICES updates
+                responseUpdateInfo = jdbcTemplate.query(getPricesUpdatesQuery(requestInfo.getVersion(), device_id), new RoselUpdateResultSetExtractor("PRICES"));
+                break;
+            case "STOCK":
+                //STOCK updates
+                responseUpdateInfo = jdbcTemplate.query(getStockUpdatesQuery(), new RoselUpdateResultSetExtractor("STOCK"));
+                break;
+        }
+        return responseUpdateInfo;
     }
 
     private final class OrdersPreparedStatementCreator implements PreparedStatementCreator {
@@ -427,7 +401,7 @@ public class RoselServerDAOjdbc implements RoselServerDAO {
                 + ");");
     }
 
-    private static final class RoselUpdateResultSetExtractor implements ResultSetExtractor<RoselUpdateStructure> {
+    private static final class RoselUpdateResultSetExtractor implements ResultSetExtractor<RoselUpdateInfo> {
 
         private String tableName;
 
@@ -436,19 +410,18 @@ public class RoselServerDAOjdbc implements RoselServerDAO {
         }
 
         @Override
-        public RoselUpdateStructure extractData(ResultSet rs) throws SQLException, DataAccessException {
-            RoselUpdateItemFactory factory = new RoselUpdateItemFactory();
-            RoselUpdateStructure updateStructure = new RoselUpdateStructure(tableName);
-            ArrayList<RoselUpdateItem> res = new ArrayList<>();
+        public RoselUpdateInfo extractData(ResultSet rs) throws SQLException, DataAccessException {
+            RoselUpdateItemFactory factory = new RoselUpdateItemFactory();            
+            ArrayList<RoselUpdateItem> itemsFromRes = new ArrayList<>();
             long curVersion = 0;
-            while (rs.next()) {
-                res.add(factory.fillFromResultSet(rs, 2));
+            RoselUpdateInfo updateInfo = new RoselUpdateInfo(tableName);
+            while (rs.next()) {                
+                updateInfo.addUpdateItem(factory.fillFromResultSet(rs, 2));
                 curVersion = rs.getLong("version");
-            }
-            updateStructure.setUpdateItems(res);                                    
-            updateStructure.setUpdateVersion(curVersion);
-            
-            return updateStructure;
+            }                        
+            updateInfo.setVersion(curVersion);
+            updateInfo.setAmount(updateInfo.getUpdateItems().size());
+            return updateInfo;
         }
     }
 

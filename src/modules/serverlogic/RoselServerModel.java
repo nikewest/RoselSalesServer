@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -14,12 +13,12 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import javax.sql.DataSource;
 import modules.data.RoselServerDAO;
+import modules.data.RoselUpdateInfo;
+import modules.data.RoselUpdateMap;
 import modules.transport.AcceptClientException;
 import modules.transport.ServerTransport;
 import modules.transport.TransportException;
-import modules.transport.TransportMessage;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -78,11 +77,7 @@ public class RoselServerModel {
 
         try {
             roselServerDAO = context.getBean(RoselServerDAO.class);
-            roselServerDAO.setDataSourceSettings(settingsManager.getSettings());
-            
-//            DataSource ds = (DataSource) context.getBean("dataSource");                        
-//            DataSourceTransactionManager tm = context.getBean(DataSourceTransactionManager.class);
-//            tm.setDataSource(ds);
+            roselServerDAO.setDataSourceSettings(settingsManager.getSettings());            
             
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
@@ -140,32 +135,6 @@ public class RoselServerModel {
         stopServer();
     }
 
-    public synchronized TransportMessage handleClientRequest(TransportMessage request, DeviceInfo deviceInfo){
-        TransportMessage response = new TransportMessage();
-        response.setDevice_id(TransportMessage.SERVER_ID);
-        if (!deviceInfo.isConfirmed()) {
-            response.setIntention(TransportMessage.NOT_REG);
-            response.setEmptyBody();
-            return response;
-        }
-
-        //check intention
-        switch (request.getIntention()) {
-            case TransportMessage.GET: // TYPE "GET" - request for data updates 
-                response.setIntention(TransportMessage.UPDATE);
-                response.setBody(getUpdates(deviceInfo, request.getBody()));
-                break;
-            case TransportMessage.POST: // TYPE "POST" - request with orders
-                postOrders(request.getBody(), deviceInfo);
-                response.setIntention(TransportMessage.POST_COMMIT);
-                break;
-            default: //if wrong type?
-                break;
-        }
-
-        return response;
-    }
-
     public static ArrayList<String> getVersionTables() {
         ArrayList<String> tables = new ArrayList();
         tables.add("PRODUCTS");
@@ -175,19 +144,11 @@ public class RoselServerModel {
         return tables;
     }
 
-    private ArrayList<String> getUpdates(DeviceInfo deviceInfo, ArrayList<String> requestBody) {
-        return roselServerDAO.getUpdates(deviceInfo.getInnerId(), requestBody);
+    public RoselUpdateInfo getUpdateInfo(DeviceInfo deviceInfo, RoselUpdateInfo updateInfo){
+        return roselServerDAO.getUpdateInfo(deviceInfo.getInnerId(), updateInfo);
     }
 
-    private static HashMap<String, Long> getTableVersionsMap() {
-        HashMap<String, Long> updatedTableVersions = new HashMap<String, Long>(getVersionTables().size());
-        for (String tableName : getVersionTables()) {
-            updatedTableVersions.put(tableName, new Long(0));
-        }
-        return updatedTableVersions;
-    }
-
-    private void postOrders(ArrayList<String> ordersInJSON, DeviceInfo deviceInfo){
+    public void postOrders(ArrayList<String> ordersInJSON, DeviceInfo deviceInfo){
         postOrdersInJSON(ordersInJSON, deviceInfo);
         if (ordersInJSON.size() > 0) {
             try {
@@ -203,9 +164,7 @@ public class RoselServerModel {
     }
 
     public void postOrdersInJSON(ArrayList<String> ordersInJSON, DeviceInfo deviceInfo) {
-
         roselServerDAO.postOrdersFromJSON(deviceInfo.getInnerId(), ordersInJSON);
-
     }
 
     public void sendNotificationsForOrders(ArrayList<String> ordersInJSONArrayList, DeviceInfo deviceInfo) throws ParseException, SQLException, MessagingException {

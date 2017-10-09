@@ -17,6 +17,7 @@ public class TransportMessage implements Serializable {
 
     //intentions TYPES
     public static final String NOT_REG = "ROSEL.NOT_REG"; //device not registered on server
+    public static final String START_UPDATE = "ROSEL.START_UPDATE"; 
     public static final String UPDATE = "ROSEL.UPDATE"; //updates sending
     public static final String POST_COMMIT = "ROSEL.POST_COMMIT"; //commit post on server
 

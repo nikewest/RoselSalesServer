@@ -12,7 +12,7 @@ public interface RoselServerDAO {
     
     public String getClientName(long clientId);
     
-    public ArrayList<String> getUpdates(long device_id, ArrayList<String> updateRequestInfo);        
+    public RoselUpdateInfo getUpdateInfo(long device_id, RoselUpdateInfo requestInfo);
     
     public DeviceInfo getDeviceInfo(String device_id);
     
