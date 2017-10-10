@@ -7,10 +7,9 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import modules.data.RoselJsonParser;
+import java.util.ArrayList;
 import modules.data.RoselUpdateInfo;
 import modules.data.RoselUpdateItem;
-import modules.data.RoselUpdateMap;
 import modules.serverlogic.DeviceInfo;
 import modules.serverlogic.RoselServerModel;
     
@@ -45,28 +44,29 @@ public class ClientConnectionHandler extends Thread {
         }        
         
         String clientIntention;
+        String deviceId;
+        
         try {
             //read intention
-            clientIntention = reader.readLine();            
+            clientIntention = reader.readLine();
+            deviceId = reader.readLine();
+            deviceInfo = server.getDeviceInfo(deviceId);
+            if (!deviceInfo.isConfirmed()) {
+                writer.println(TransportProtocol.NOT_REG);
+                writer.flush();
+                stopHandle();
+                return;
+            }
         } catch (IOException ex) {
             server.handleConnectionException(ex);
             stopHandle();
             return;
-        }   
+        }
         
         switch (clientIntention) {
-            case TransportMessage.GET:
-                String deviceId;
-                try {
-                    deviceId = reader.readLine();
-                    deviceInfo = server.getDeviceInfo(deviceId);
-                    if (!deviceInfo.isConfirmed()) {
-                        writer.println(TransportMessage.NOT_REG);
-                        writer.flush();
-                        stopHandle();
-                        return;
-                    }
-                    writer.println(TransportMessage.START_UPDATE);
+            case TransportProtocol.GET:                
+                try {                    
+                    writer.println(TransportProtocol.START_UPDATE);
                     writer.flush();
                     RoselUpdateInfo clientUpdateInfo;
                     RoselUpdateInfo updateInfo;
@@ -79,7 +79,7 @@ public class ClientConnectionHandler extends Thread {
                             stopHandle();
                             return;
                         }
-                        clientUpdateInfo = RoselJsonParser.fromJSONString(updateInfoJson);
+                        clientUpdateInfo = RoselUpdateInfo.fromJSONString(updateInfoJson);
                         updateInfo  = server.getUpdateInfo(deviceInfo, clientUpdateInfo);
                         writer.println(updateInfo.toJSON());
                         writer.flush();
@@ -95,42 +95,38 @@ public class ClientConnectionHandler extends Thread {
                     stopHandle();
                     return;
                 }                
-
-            case TransportMessage.POST:
-                break;
+                
+            case TransportProtocol.POST:
+                try {                    
+                    writer.println(TransportProtocol.START_POST);
+                    writer.flush();
+                    
+                    ArrayList<String> ordersJson = new ArrayList<>();
+                    
+                    String orderJsonString;
+                    
+                    while ((orderJsonString = reader.readLine())!=null && !orderJsonString.equals(TransportProtocol.COMMIT)) {                        
+                        ordersJson.add(orderJsonString);                                                                        
+                    }
+                    
+                    server.postOrders(ordersJson, deviceInfo);
+                    
+                    writer.println(TransportProtocol.COMMIT);
+                    writer.flush();
+                    
+                    stopHandle();                                     
+                    
+                    break;
+                    
+                } catch (Exception ex) {
+                    server.handleConnectionException(ex);
+                    stopHandle();
+                    return;
+                }  
         }
         
         stopHandle();        
     }
-    
-//    public void handleClientRequest(TransportMessage request, DeviceInfo deviceInfo){
-//        
-//        TransportMessage response = new TransportMessage();
-//        response.setDevice_id(TransportMessage.SERVER_ID);
-//        if (!deviceInfo.isConfirmed()) {
-//            response.setIntention(TransportMessage.NOT_REG);
-//            response.setEmptyBody();
-//            write(response.toJSONString());
-//        }
-//
-//        //check intention
-//        switch (request.getIntention()) {
-//            case TransportMessage.GET: // TYPE "GET" - request for data updates 
-//                response.setIntention(TransportMessage.UPDATE);
-//                RoselUpdateMap updateMap = server.getUpdates(deviceInfo, request.getBody());                
-//                response.getBody().add(updateMap.getJsonUpdateInfo());
-//                write(response.toJSONString());
-//                write((String[]) updateMap.getUpdateBody().toArray());
-//                break;
-//            case TransportMessage.POST: // TYPE "POST" - request with orders
-//                server.postOrders(request.getBody(), deviceInfo);
-//                response.setIntention(TransportMessage.POST_COMMIT);
-//                write(response.toJSONString());
-//                break;
-//            default: //if wrong type?
-//                break;
-//        }
-//    }
     
     public void stopHandle(){
         freeRes();        

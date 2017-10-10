@@ -15,7 +15,6 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import modules.data.RoselServerDAO;
 import modules.data.RoselUpdateInfo;
-import modules.data.RoselUpdateMap;
 import modules.transport.AcceptClientException;
 import modules.transport.ServerTransport;
 import modules.transport.TransportException;
@@ -163,7 +162,7 @@ public class RoselServerModel {
         }
     }
 
-    public void postOrdersInJSON(ArrayList<String> ordersInJSON, DeviceInfo deviceInfo) {
+    private void postOrdersInJSON(ArrayList<String> ordersInJSON, DeviceInfo deviceInfo) {
         roselServerDAO.postOrdersFromJSON(deviceInfo.getInnerId(), ordersInJSON);
     }
 
