@@ -2,8 +2,6 @@ package modules.transport;
 
 public abstract class TransportProtocol {
 
-    public static final String END = "@";
-
     //ids
     public static final String SERVER_ID = "ROSEL.SERVER";
 
