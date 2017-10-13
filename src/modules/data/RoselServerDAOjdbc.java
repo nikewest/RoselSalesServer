@@ -127,10 +127,32 @@ public class RoselServerDAOjdbc implements RoselServerDAO {
                 + " ORDER BY temp.version";
     }
 
-    private String getStockUpdatesQuery() {
+    private static String getStockUpdatesQuery() {
         return "SELECT 0 as version, 1 as action, S.* FROM STOCK AS S";
     }
-
+    
+    private static String getTableUpdateTriggerQuery(String tableName){
+        return "CREATE TRIGGER " + tableName + "_UPDATE_TRIGGER] "+
+                    "ON " + tableName + " " + 
+                "AFTER UPDATE "+
+                "AS "+
+                "BEGIN "+
+                    "INSERT INTO UPDATES (item_id, table_name, action, version) "+
+                    "SELECT _id, '" + tableName + "', 2, CONVERT(nchar(11), GETDATE(),120) FROM INSERTED "+
+                  "END";
+    }
+    
+    private static String getTableInsertTriggerQuery(String tableName){
+        return "CREATE TRIGGER " + tableName + "_INSERT_TRIGGER] "+
+                    "ON " + tableName + " " + 
+                "AFTER INSERT "+
+                "AS "+
+                "BEGIN "+
+                    "INSERT INTO UPDATES (item_id, table_name, action, version) "+
+                    "SELECT _id, '" + tableName + "', 1, CONVERT(nchar(11), GETDATE(),120) FROM INSERTED "+
+                  "END";
+    }
+    
     @Override
     public DeviceInfo getDeviceInfo(String device_id) {
         List<DeviceInfo> res = jdbcTemplate.query(getDeviceInfoQuery(device_id), new DeviceInfoRowMapper());
@@ -294,6 +316,7 @@ public class RoselServerDAOjdbc implements RoselServerDAO {
                 + "    FOREIGN KEY (manager_id)\n"
                 + "    REFERENCES MANAGERS(_id)\n"
                 + ");");
+                
         jdbcTemplate.execute("CREATE TABLE ADDRESSES (\n"
                 + "  _id       integer PRIMARY KEY IDENTITY(1,1),\n"
                 + "  rosel_id  nchar(11),\n"
@@ -306,6 +329,7 @@ public class RoselServerDAOjdbc implements RoselServerDAO {
                 + "    FOREIGN KEY (client_id)\n"
                 + "    REFERENCES CLIENTS(_id), \n"
                 + ");");
+        
         jdbcTemplate.execute("CREATE TABLE PRODUCTS (\n"
                 + "  _id       integer PRIMARY KEY IDENTITY(1,1),\n"
                 + "  rosel_id  nchar(11),\n"
@@ -398,6 +422,20 @@ public class RoselServerDAOjdbc implements RoselServerDAO {
                 + "  \"action\"    integer,\n"
                 + "  version     nchar(11),\n"
                 + ");");
+        
+        jdbcTemplate.execute(getTableInsertTriggerQuery("CLIENTS"));
+        jdbcTemplate.execute(getTableUpdateTriggerQuery("CLIENTS"));
+        
+        jdbcTemplate.execute(getTableInsertTriggerQuery("ADDRESSES"));
+        jdbcTemplate.execute(getTableUpdateTriggerQuery("ADDRESSES"));
+        
+        jdbcTemplate.execute(getTableInsertTriggerQuery("PRODUCTS"));
+        jdbcTemplate.execute(getTableUpdateTriggerQuery("PRODUCTS"));
+        
+        jdbcTemplate.execute(getTableInsertTriggerQuery("PRICES"));
+        jdbcTemplate.execute(getTableUpdateTriggerQuery("PRICES"));
+        
+        
     }
 
     private static final class RoselUpdateResultSetExtractor implements ResultSetExtractor<RoselUpdateInfo> {
