@@ -51,7 +51,7 @@ public class RoselUpdateInfo {
     }
     
     public boolean isEmpty(){
-        return getUpdateItems()!=null && getUpdateItems().isEmpty();
+        return getUpdateItems()==null || getUpdateItems().isEmpty();
     }
     
     public JSONObject toJSON(){

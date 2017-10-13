@@ -412,7 +412,7 @@ public class RoselServerDAOjdbc implements RoselServerDAO {
         @Override
         public RoselUpdateInfo extractData(ResultSet rs) throws SQLException, DataAccessException {
             RoselUpdateItemFactory factory = new RoselUpdateItemFactory();            
-            ArrayList<RoselUpdateItem> itemsFromRes = new ArrayList<>();
+//            ArrayList<RoselUpdateItem> itemsFromRes = new ArrayList<>();
             long curVersion = 0;
             RoselUpdateInfo updateInfo = new RoselUpdateInfo(tableName);
             while (rs.next()) {                

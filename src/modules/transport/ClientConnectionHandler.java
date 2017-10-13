@@ -83,10 +83,12 @@ public class ClientConnectionHandler extends Thread {
                         updateInfo  = server.getUpdateInfo(deviceInfo, clientUpdateInfo);
                         writer.println(updateInfo.toJSON());
                         writer.flush();
-                        for(RoselUpdateItem updateItem:updateInfo.getUpdateItems()){
-                            writer.println(updateItem.toString());                            
+                        if(!updateInfo.isEmpty()){
+                            for(RoselUpdateItem updateItem:updateInfo.getUpdateItems()){
+                                writer.println(updateItem.toString());                            
+                            }
+                            writer.flush();
                         }
-                        writer.flush();
                         updateInfoJson = reader.readLine();                        
                     }
 
