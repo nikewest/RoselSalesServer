@@ -132,7 +132,7 @@ public class RoselServerDAOjdbc implements RoselServerDAO {
     }
     
     private static String getTableUpdateTriggerQuery(String tableName){
-        return "CREATE TRIGGER " + tableName + "_UPDATE_TRIGGER] "+
+        return "CREATE TRIGGER " + tableName + "_UPDATE_TRIGGER "+
                     "ON " + tableName + " " + 
                 "AFTER UPDATE "+
                 "AS "+
@@ -143,7 +143,7 @@ public class RoselServerDAOjdbc implements RoselServerDAO {
     }
     
     private static String getTableInsertTriggerQuery(String tableName){
-        return "CREATE TRIGGER " + tableName + "_INSERT_TRIGGER] "+
+        return "CREATE TRIGGER " + tableName + "_INSERT_TRIGGER "+
                     "ON " + tableName + " " + 
                 "AFTER INSERT "+
                 "AS "+
