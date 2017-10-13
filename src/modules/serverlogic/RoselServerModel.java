@@ -143,7 +143,7 @@ public class RoselServerModel {
         return tables;
     }
 
-    public RoselUpdateInfo getUpdateInfo(DeviceInfo deviceInfo, RoselUpdateInfo updateInfo){
+    public synchronized RoselUpdateInfo getUpdateInfo(DeviceInfo deviceInfo, RoselUpdateInfo updateInfo){
         return roselServerDAO.getUpdateInfo(deviceInfo.getInnerId(), updateInfo);
     }
 
@@ -152,21 +152,17 @@ public class RoselServerModel {
         if (ordersInJSON.size() > 0) {
             try {
                 sendNotificationsForOrders(ordersInJSON, deviceInfo);
-            } catch (MessagingException ex) {
-                LOG.log(Level.SEVERE, ex.getMessage(), ex);
-            } catch (ParseException ex) {
-                LOG.log(Level.SEVERE, ex.getMessage(), ex);
-            } catch (SQLException ex) {
+            } catch (MessagingException | ParseException | SQLException ex) {
                 LOG.log(Level.SEVERE, ex.getMessage(), ex);
             }
         }
     }
 
-    private void postOrdersInJSON(ArrayList<String> ordersInJSON, DeviceInfo deviceInfo) {
+    private synchronized void postOrdersInJSON(ArrayList<String> ordersInJSON, DeviceInfo deviceInfo) {
         roselServerDAO.postOrdersFromJSON(deviceInfo.getInnerId(), ordersInJSON);
     }
 
-    public void sendNotificationsForOrders(ArrayList<String> ordersInJSONArrayList, DeviceInfo deviceInfo) throws ParseException, SQLException, MessagingException {
+    public synchronized void sendNotificationsForOrders(ArrayList<String> ordersInJSONArrayList, DeviceInfo deviceInfo) throws ParseException, SQLException, MessagingException {
         for (String jsonString : ordersInJSONArrayList) {
             JSONParser parser = new JSONParser();
             JSONObject jsonObject = (JSONObject) parser.parse(jsonString);

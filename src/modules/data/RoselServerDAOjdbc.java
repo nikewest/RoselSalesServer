@@ -27,7 +27,6 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Component("serverDAO")
 public class RoselServerDAOjdbc implements RoselServerDAO {
@@ -172,8 +171,8 @@ public class RoselServerDAOjdbc implements RoselServerDAO {
         JSONArray lines;
         JSONObject orderLine;
 
-        Boolean txactive = TransactionSynchronizationManager.isActualTransactionActive();
-        LOG.log(Level.SEVERE, "Transaction is active: " + txactive.toString());
+//        Boolean txactive = TransactionSynchronizationManager.isActualTransactionActive();
+//        LOG.log(Level.SEVERE, "Transaction is active: " + txactive.toString());
         
         for (String jsonString : ordersInJSON) {
             try {
@@ -412,7 +411,6 @@ public class RoselServerDAOjdbc implements RoselServerDAO {
         @Override
         public RoselUpdateInfo extractData(ResultSet rs) throws SQLException, DataAccessException {
             RoselUpdateItemFactory factory = new RoselUpdateItemFactory();            
-//            ArrayList<RoselUpdateItem> itemsFromRes = new ArrayList<>();
             long curVersion = 0;
             RoselUpdateInfo updateInfo = new RoselUpdateInfo(tableName);
             while (rs.next()) {                
